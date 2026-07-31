@@ -1,0 +1,9 @@
+text window "Notes", 600, 400:
+
+    page.text = "Start typing..."
+
+    on change page:
+        wordCountLabel.text = "Editing..."
+
+    on close:
+        write_file("notes.txt", page.text)

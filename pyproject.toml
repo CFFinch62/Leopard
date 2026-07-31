@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leopard-lang"
+version = "0.1.0"
+description = "Leopard: a beginner-friendly language with window/text-window/graphics-window programs, named GUI controls, and turtle graphics."
+requires-python = ">=3.12"
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+gui = ["PyQt6>=6.7.0"]
+build = ["pyinstaller>=6.0.0"]
+
+[project.scripts]
+leopard = "leopard_lang.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: a real end-to-end PyInstaller build (seconds, not milliseconds) — still runs by default, just marked for selective skipping (-m 'not slow') when iterating quickly.",
+]

@@ -1,0 +1,2 @@
+graphics window "Turtle Demo", 640, 480:
+    pen "red"

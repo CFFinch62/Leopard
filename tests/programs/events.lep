@@ -1,0 +1,7 @@
+button "Greet" as btnGreet at 220, 10, 80, 24
+
+on click btnGreet:
+    if nameBox.text = "":
+        notice "Type your name first."
+    else:
+        notice "Hello, " & nameBox.text

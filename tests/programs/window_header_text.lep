@@ -1,0 +1,2 @@
+text window "Log Viewer", 600, 400:
+    page.text = "hi"

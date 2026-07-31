@@ -1,0 +1,2 @@
+"Score: " & str(score)      # correct
+"Score: " & score           # runtime error: cannot & a string and a number — use str(score)

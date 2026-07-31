@@ -1,0 +1,2 @@
+window "My App", 500, 400:
+    notice "hi"

@@ -1,0 +1,5 @@
+score = 0
+name = "Chuck"
+found = false
+fruits = ["apple", "banana", "cherry"]   # list literal
+first = fruits[1]                        # 1-based: "apple"

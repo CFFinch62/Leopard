@@ -1,0 +1,5 @@
+nameBox.text = "placeholder"
+outputArea.color = "darkblue"
+fruitList.items = ["Apple", "Banana", "Cherry"]
+fruitList.items.add("Date")
+first = fruitList.items[1]   # 1-based, same as list literals

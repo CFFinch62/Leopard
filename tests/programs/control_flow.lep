@@ -1,0 +1,15 @@
+if score > 10:
+    notice "You win!"
+elseif score > 0:
+    notice "Keep going."
+else:
+    notice "Try again."
+
+while count < 5:
+    count = count + 1
+
+for i = 1 to 10 step 2:
+    print i
+
+break
+continue
