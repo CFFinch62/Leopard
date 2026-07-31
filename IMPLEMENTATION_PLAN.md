@@ -548,6 +548,36 @@ IDE, and write a working Leopard program without asking a question.
 *(Append-only, newest first. Anything that isn't already captured in GRAMMAR.md's status list but
 affects implementation goes here — file layout calls, library choices, judgment calls made mid-phase.)*
 
+- **2026-07-31** — Fixed cross-repo doc links after realizing both repos are now published
+  separately on GitHub (`https://github.com/CFFinch62/Leopard` and
+  `https://github.com/CFFinch62/LEOPARD-IDE`) — every earlier doc pass wrote cross-references as
+  bare local paths (`` `IDE_Suite 2/LEOPARD/examples/` ``, `` `LANGUAGES/Leopard/GRAMMAR.md` ``,
+  even one hardcoded absolute path, `/home/chuck/Dropbox/.../IDE_Suite 2/LEOPARD`, in the IDE
+  README's Run section) that only resolve on this one dev machine's specific folder layout — a
+  visitor to either repo on GitHub has no access to the other repo's files at all, so those reads
+  as literally broken/inaccessible paths, not just unclear ones. Replaced every such reference in
+  both repos' `README.md`, `LANGUAGES/Leopard/LANGUAGE_GUIDE.md`, and
+  `IDE_Suite 2/LEOPARD/examples/README.md` with real `https://github.com/...` links (assuming
+  each repo's default branch, `main`), and reworded the "IDE"/"language" sections in each
+  project's README to explicitly state they're two separate repositories, with the IDE needing
+  the language installed first. Also surfaced, and chose to *document rather than fix*, a real
+  functional gap this made obvious: `IDE_Suite 2/LEOPARD/requirements.txt`'s
+  `-e ../../../LANGUAGES/Leopard[gui,build]` line is a hardcoded relative path that only resolves
+  if both repos are cloned into this exact same nested layout — a plain `git clone` of just the
+  IDE repo from GitHub, anywhere else, would fail that `pip install -r requirements.txt` step
+  outright (with a clear, self-diagnosing "path does not exist" error, at least, not a silent
+  failure). Deliberately left `requirements.txt`/`setup.sh` themselves unchanged rather than
+  switching to a `leopard-lang[gui,build] @ git+https://github.com/CFFinch62/Leopard.git`-style
+  direct reference (which would make a fresh clone "just work" with no layout requirement at
+  all): that would sacrifice the editable-install, live-reflects-local-edits development
+  convenience this exact relative-path setup gives *on this machine*, which is still the primary
+  environment for developing both projects side by side. Instead, the IDE README's Requirements
+  section now says outright what the path assumes and gives a GitHub visitor two explicit ways
+  around it — replicate the layout, or `pip install` `leopard-lang` into the IDE's venv
+  themselves and drop that `requirements.txt` line. Worth revisiting if/when packaging
+  `leopard-lang` for PyPI ever happens — a real published package would remove this whole
+  category of friction outright. No code changed; also fixed two stale test-count mentions
+  (`287` → `291`, matching the `eq` addition above) found while touring these files.
 - **2026-07-31** — First real post-Phase-12 *language* change (everything before this entry today
   was documentation-only): added `eq` as a word alternative to `=` in comparison position,
   additive only — `=` still means both assignment and equality exactly as before, nothing about

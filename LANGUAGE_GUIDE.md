@@ -19,10 +19,13 @@ two ways:
 leopard run myprogram.lep
 ```
 
-**From the Leopard IDE** — open a `.lep` file (or start a new one), click **Run**.
+**From the Leopard IDE** — a separate project; see
+[github.com/CFFinch62/LEOPARD-IDE](https://github.com/CFFinch62/LEOPARD-IDE) —
+open a `.lep` file (or start a new one), click **Run**.
 
-Every example in this guide also lives in the IDE's `examples/` folder, ready to
-open and run.
+Every example in this guide also lives in that IDE repo's
+[`examples/`](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)
+folder, ready to open and run.
 
 ---
 
@@ -254,9 +257,10 @@ first = fruitList.items[1]
 | `.selected` | listbox, combobox | the 1-based index of the current selection |
 | `.visible`, `.enabled` | any control | show/hide, enable/disable |
 
-See `examples/greeter.lep` for a small complete program using several of these
-together, and `examples/fizzbuzz.lep` for a window that combines a loop, a
-function, and a list-backed control.
+See [`greeter.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/greeter.lep)
+for a small complete program using several of these together, and
+[`fizzbuzz.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/fizzbuzz.lep)
+for a window that combines a loop, a function, and a list-backed control.
 
 ---
 
@@ -319,7 +323,8 @@ window "Editor", 500, 400:
 
 The `&` before a letter (`&File`, `E&xit`) marks that letter as a keyboard shortcut
 within the menu — it's not part of the visible text otherwise. See
-`examples/menus.lep` for the complete, runnable version of this program.
+[`menus.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/menus.lep)
+for the complete, runnable version of this program.
 
 ---
 
@@ -362,7 +367,8 @@ graphics window "Turtle Demo", 640, 480:
 | `ellipse w, h` / `ellipsefilled w, h` | ellipse centered on the current position |
 | `drawbmp "path", x, y` | draw an image file at a position |
 
-See `examples/turtle_demo.lep` to try this yourself.
+See [`turtle_demo.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/turtle_demo.lep)
+to try this yourself.
 
 ---
 
@@ -386,7 +392,8 @@ text window "Notes", 600, 400:
 `page` works exactly like any other control — `.text` to read or write its
 contents, `on change`/`on close` to react to it — it's just always there,
 filling the window, instead of something you declare yourself. See
-`examples/notes.lep` for the full version.
+[`notes.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/notes.lep)
+for the full version.
 
 ---
 
@@ -493,7 +500,9 @@ with one click: the **Build** toolbar button.
 
 - `GRAMMAR.md` — the complete, precise language spec (every operator, every
   keyword, every builtin, with the exact rules).
-- `examples/` (in the IDE's folder) — five complete programs, one for each major
-  area covered above.
+- **[Example curriculum](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)**
+  — sixteen complete programs in the companion
+  [Leopard IDE](https://github.com/CFFinch62/LEOPARD-IDE) repository, one for
+  each major area covered above.
 - `IMPLEMENTATION_PLAN.md` — if you're curious how Leopard itself was built, or
   want to contribute.

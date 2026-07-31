@@ -54,17 +54,19 @@ Python installation required on the machine that runs it.
 - **[GRAMMAR.md](GRAMMAR.md)** — the complete, precise language spec: every
   keyword, operator, and builtin, with exact rules. The source of truth the
   guide is derived from.
-- `IDE_Suite 2/LEOPARD/examples/` — a sixteen-program curriculum, from
-  bare-script fundamentals through every window kind to two capstone
-  projects, ready to open and run in the Leopard IDE. See that folder's own
-  `README.md` for the full, ordered list.
+- **[Example curriculum](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)**
+  — sixteen sample programs in the companion [Leopard IDE](https://github.com/CFFinch62/LEOPARD-IDE)
+  repository, from bare-script fundamentals through every window kind to two
+  capstone projects. See that folder's own README for the full, ordered list.
 
 ## The Leopard IDE
 
 Leopard is fully usable from the command line with any text editor, but a
-dedicated IDE also exists at `IDE_Suite 2/LEOPARD/` (a sibling project, not
-part of this package) — syntax highlighting, a run/build toolbar, and a
-file browser built on the same `leopard-lang` package described here.
+dedicated IDE also exists, in its own separate repository:
+**[github.com/CFFinch62/LEOPARD-IDE](https://github.com/CFFinch62/LEOPARD-IDE)**
+— syntax highlighting, a run/build toolbar, a file browser, and the example
+curriculum above, all built on this package (`leopard-lang`). Install this
+package first (see Installing, above), then follow that repo's own README.
 
 ## Project layout
 
@@ -92,7 +94,7 @@ pip install -e ".[dev,gui,build]"
 pytest
 ```
 
-287 tests, headless (`QT_QPA_PLATFORM=offscreen` set automatically in
+291 tests, headless (`QT_QPA_PLATFORM=offscreen` set automatically in
 `tests/conftest.py`), a few seconds to run. See `IMPLEMENTATION_PLAN.md` for
 the full build history and design decisions behind the language.
 
