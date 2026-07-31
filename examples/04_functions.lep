@@ -1,0 +1,39 @@
+# Lesson 04 - Functions
+#
+# One keyword covers both "functions" (return a value) and "procedures"
+# (just do something) - if you never `return`, calling it is just running
+# a named block of code.
+
+function square(n):
+    return n * n
+
+function greeting(who):
+    return "Hello, " & who & "!"
+
+function factorial(n):
+    if n <= 1:
+        return 1
+    return n * factorial(n - 1)
+
+# Assigning to a variable inside a function always creates a LOCAL variable,
+# even if a same-named variable exists outside - so a function can't build
+# up an outer variable just by assigning to it (see shadow_demo below).
+# A function's side effects have to go through something other than plain
+# assignment - here, appending to a file - to actually be visible outside it.
+write_file("04_output.txt", "")
+
+function log_line(message):
+    append_file("04_output.txt", message & "\n")
+
+log_line("square(6) = " & str(square(6)))
+log_line(greeting("Chuck"))
+log_line("factorial(5) = " & str(factorial(5)))
+
+outer_value = "outside"
+
+function shadow_demo():
+    outer_value = "inside"
+    return outer_value
+
+log_line("shadow_demo() returned: " & shadow_demo())
+log_line("outer_value is still: " & outer_value)

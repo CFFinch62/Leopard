@@ -1,0 +1,59 @@
+# Turtle graphics, full tour - every §10 command except drawbmp (which needs
+# an image file of your own; see the commented-out line at the bottom).
+
+graphics window "Turtle Full Tour", 500, 500:
+    backcolor "lightyellow"
+    pen "black"
+    size 2
+
+    # A square, using go/turn (heading 0 is north, turning is clockwise).
+    down
+    go 100
+    turn 90
+    go 100
+    turn 90
+    go 100
+    turn 90
+    go 100
+    turn 90
+    up
+
+    # place jumps to a position without ever drawing, regardless of pen state.
+    place 250, 100
+
+    # circlefilled/circle are centered on the current position.
+    fill "seagreen"
+    circlefilled 30
+
+    goto 340, 100
+    pen "navy"
+    circle 30
+
+    # box/boxfilled measure a width/height from the current position as
+    # their top-left corner.
+    place 100, 250
+    pen "black"
+    fill "orange"
+    boxfilled 80, 50
+
+    place 220, 250
+    box 80, 50
+
+    # ellipse/ellipsefilled are centered on the current position too.
+    place 380, 275
+    fill "purple"
+    ellipsefilled 60, 30
+
+    place 380, 340
+    ellipse 60, 30
+
+    # text, with a chosen font (family, or family + point size).
+    place 60, 400
+    font "Arial", 16
+    text "Leopard turtle graphics"
+
+    # drawbmp "some_image.png", 20, 20   -- draws an image file at a position
+
+    # home resets both position and heading; north resets only the heading.
+    home
+    north

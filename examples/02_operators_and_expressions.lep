@@ -1,0 +1,50 @@
+# Lesson 02 - Operators and expressions
+
+a = 10
+b = 3
+
+sum = a + b
+difference = a - b
+product = a * b
+quotient = a / b
+remainder = a % b
+power = a ^ b
+
+# & joins strings together (it's Leopard's "+" for text).
+joined = "a=" & str(a) & ", b=" & str(b)
+
+# "=" means both "assign" and "equal to" - which one depends on where it
+# appears. "eq" is an alternate spelling that only ever means "equal to",
+# for whenever writing that out is clearer than reusing "=" again.
+is_equal = (a = b)
+is_equal_word = (a eq b)
+is_greater = (a > b)
+is_at_least = (a >= b)
+
+logic_and = (a > 5) and (b < 5)
+logic_or = (a > 100) or (b < 5)
+negated = not is_equal
+
+log = ""
+log = log & "sum: " & str(sum) & "\n"
+log = log & "difference: " & str(difference) & "\n"
+log = log & "product: " & str(product) & "\n"
+log = log & "quotient: " & str(quotient) & "\n"
+log = log & "remainder: " & str(remainder) & "\n"
+log = log & "power: " & str(power) & "\n"
+log = log & "joined: " & joined & "\n"
+log = log & "is_equal: " & str(is_equal) & "\n"
+log = log & "is_equal_word (using eq instead of =): " & str(is_equal_word) & "\n"
+log = log & "is_greater: " & str(is_greater) & "\n"
+log = log & "is_at_least: " & str(is_at_least) & "\n"
+log = log & "logic_and: " & str(logic_and) & "\n"
+log = log & "logic_or: " & str(logic_or) & "\n"
+log = log & "negated: " & str(negated) & "\n"
+
+write_file("02_output.txt", log)
+
+# Two deliberate design choices worth knowing, both enforced at runtime:
+#   "a" + "b"     -> error: + only works on numbers. Use & to join text instead.
+#   "n = " & 5    -> error: & only works on strings. Wrap the number in str() first.
+# Neither line above is executed here on purpose - both would stop the
+# program immediately with a runtime error.

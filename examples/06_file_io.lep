@@ -1,0 +1,26 @@
+# Lesson 06 - File I/O
+#
+# write_file/append_file/read_file/delete_file/make_dir/remove_dir/file_exists
+# all work from a bare (no-window) script - none of them need a GUI.
+
+log = ""
+
+write_file("06_scratch.txt", "first line\n")
+append_file("06_scratch.txt", "second line\n")
+
+contents = read_file("06_scratch.txt")
+log = log & "06_scratch.txt contains:\n" & contents
+
+log = log & "file_exists(\"06_scratch.txt\"): " & str(file_exists("06_scratch.txt")) & "\n"
+log = log & "file_exists(\"nope.txt\"): " & str(file_exists("nope.txt")) & "\n"
+
+make_dir("06_scratch_dir")
+log = log & "created 06_scratch_dir\n"
+
+delete_file("06_scratch.txt")
+log = log & "file_exists after delete_file: " & str(file_exists("06_scratch.txt")) & "\n"
+
+remove_dir("06_scratch_dir")
+log = log & "removed 06_scratch_dir (remove_dir only removes empty directories)\n"
+
+write_file("06_output.txt", log)
