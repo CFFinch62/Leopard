@@ -6,10 +6,10 @@
 # done_flags) that always stay the same length, in the same order, rather
 # than as one list of "task objects" - Leopard has no object/record type, so
 # this is the normal way to keep several related pieces of data about the
-# same items. Note also that Leopard lists don't support reassigning an
-# existing slot (tasks[i] = ... isn't implemented) - both "mark done" and
-# "remove" below work by building a brand new list and reassigning the whole
-# variable to it, the same pattern lesson 05 introduced.
+# same items. "Mark done" below replaces a slot in place with list[i] = value;
+# Leopard lists have no built-in way to remove an item, so "remove" instead
+# builds a brand new list and reassigns the whole variable to it, the same
+# pattern lesson 05 introduced.
 
 window "Todo List", 420, 420:
 
@@ -54,13 +54,7 @@ window "Todo List", 420, 420:
         if row = 0:
             notice("Select a task first.")
         else:
-            new_flags = []
-            for i = 1 to done_flags.length:
-                flag = done_flags[i]
-                if i = row:
-                    flag = not flag
-                new_flags.add(flag)
-            done_flags = new_flags
+            done_flags[row] = not done_flags[row]
             refresh_display()
 
     on click removeButton:

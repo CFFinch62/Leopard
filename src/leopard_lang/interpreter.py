@@ -91,6 +91,22 @@ class Interpreter:
 
     def _exec_PropertyAssignment(self, stmt: ast.PropertyAssignment, env: Environment) -> None:
         target = stmt.target
+        if isinstance(target, ast.Index):
+            obj = self._eval(target.obj, env)
+            index = self._eval(target.index, env)
+            if not isinstance(obj, list):
+                raise LeopardRuntimeError(
+                    target.line, f"cannot index into {describe_type(obj)} — only lists support [ ]"
+                )
+            if isinstance(index, bool) or not isinstance(index, int):
+                raise LeopardRuntimeError(target.line, "a list index must be a whole number")
+            if index < 1 or index > len(obj):
+                plural = "item" if len(obj) == 1 else "items"
+                raise LeopardRuntimeError(
+                    target.line, f"list index {index} is out of range (list has {len(obj)} {plural})"
+                )
+            obj[index - 1] = self._eval(stmt.value, env)
+            return
         if self.gui_properties is not None and isinstance(target, ast.PropertyAccess):
             obj = self._eval(target.obj, env)
             if self.gui_properties.is_gui_object(obj):

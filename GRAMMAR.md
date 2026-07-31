@@ -215,8 +215,10 @@ This is the biggest structural change. Leopard had ~15 separate keywords just to
 | `.font` | any control / window | `font` |
 | `.checked` | checkbox, radiobutton | (was implicit in onclick tuple) |
 | `.items` | listbox, combobox | `print listbox`…`print listboxfive` (5-slot ceiling gone — `.items = [...]`, `.items.add(x)`) |
-| `.selected` | listbox, combobox | `selectionindex?` |
+| `.selected` | listbox, combobox | 1-based index of the selected item, `0` if none is selected — same 1-based convention as list literals |
 | `.visible`, `.enabled` | any control | *(new — original had neither)* |
+
+`.font`'s value is a font-family name (`label.font = "Arial"`), a plain string, not a struct or a "family, size" pair.
 
 ```
 nameBox.text = "placeholder"
@@ -312,6 +314,30 @@ graphics window "Turtle Demo", 640, 480:
 
 `up down home go goto place turn north fill pen size font text backcolor box boxfilled circle circlefilled ellipse ellipsefilled drawbmp` — all carried over unchanged in name and meaning.
 
+**Semantics:**
+
+| Command | Meaning |
+|---|---|
+| `up` / `down` | raise/lower the pen — `go`/`goto` only draw a line while the pen is down |
+| `go n` | move `n` pixels in the current heading, drawing a line if the pen is down |
+| `goto x, y` | move to absolute coordinates, drawing a line if the pen is down |
+| `place x, y` | jump to absolute coordinates without ever drawing, regardless of pen state |
+| `turn n` | increase heading by `n` degrees, clockwise |
+| `north` | reset heading to `0` (facing north/`-y`) without moving |
+| `home` | reset both position (canvas center) and heading to `0` |
+| `pen "color"` | set the line/pen color (invalid color names raise a runtime error) |
+| `fill "color"` | set the fill color used by `boxfilled`/`circlefilled`/`ellipsefilled` |
+| `backcolor "color"` | set the canvas background color |
+| `size n` | set pen width in pixels |
+| `font "family"` / `font "family", size` | set the font used by `text`; family alone, or family + point size |
+| `text "string"` | draw a string at the current position |
+| `box w, h` / `boxfilled w, h` | draw a rectangle `w` by `h` pixels, current position as the top-left corner |
+| `circle r` / `circlefilled r` | draw a circle of radius `r`, centered at the current position |
+| `ellipse w, h` / `ellipsefilled w, h` | draw an ellipse `w` by `h` pixels, centered at the current position |
+| `drawbmp "file.bmp", x, y` | draw an image at absolute coordinates `x, y` |
+
+Heading `0` is north; turning is clockwise (`turn 90` faces east). Default turtle state at the start of a `graphics window` block: pen up, position at canvas center, heading `0` (north), black pen and fill, pen size `1`, white background.
+
 ---
 
 ## 11. Text window (fully editable)
@@ -341,6 +367,7 @@ The original's ~40 fixed onclick-action keywords become ordinary builtin functio
 | Old keyword | New builtin |
 |---|---|
 | *(new — required by `&`'s no-coercion rule)* | `str(value)` → string, `num(text)` → number |
+| *(new — a bare script's only console output)* | `print value` — writes a number, string, or `true`/`false` to the console, followed by a newline |
 | `notice` | `notice "text"` |
 | `confirm` | `confirm("Really quit?")` → boolean |
 | `varN prompt` | `ask("Enter name:")` → string |
@@ -405,57 +432,36 @@ Consolidated list of everything that can't be used as a variable, function, or c
 
 `window`, `text window`, `graphics window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`, `page`
 
-Plus every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `drawbmp`) and every builtin from Section 12.
+Plus the control-declaration keywords from Section 7 (`textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`, `checkbox`, `groupbox`), every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `drawbmp`), and every builtin from Section 12.
+
+`window` and `page` are also reserved as implicit identifiers, not just declaration keywords: inside any `window`/`text window`/`graphics window` block, `window` refers to the current window itself (so `window.title = "..."` works the same way in all three), and `page` refers to the implicit text-area control inside a `text window` block (see Section 11).
 
 ---
 
 ## 15. Open questions for the next pass
 
-Everything from v0.1 and v0.2 is resolved. Five gaps have surfaced since, while implementing and
-exercising the language (see IMPLEMENTATION_PLAN.md for the phase each was found in):
+Everything from v0.1 and v0.2 is resolved. Five gaps surfaced while implementing and exercising
+the language (see IMPLEMENTATION_PLAN.md for the phase each was found in) — all five are now
+resolved:
 
-1. **§14's reserved-word list omits the §7 control-declaration keywords** (`textbox`,
-   `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`,
-   `checkbox`, `groupbox`). They're unambiguously needed as keywords for the parser to
-   recognize declarations, so the lexer reserves them regardless (see IMPLEMENTATION_PLAN.md's
-   decisions log) — §14 should be updated to list them explicitly.
-2. **`print` is used in §5's `for` loop example** (`for i = 1 to 10 step 2: print i`) but is
-   never defined anywhere as a keyword or builtin — §12's builtin table has no `print` entry.
-   Either add it to §12 (what does it do — write to a console pane? only meaningful in a
-   `text window`/graphics context?) or replace the example with an already-defined builtin.
-3. **§12's `window.title = "..."` example implies `window` doubles as an identifier** referring
-   to the current window (the same way §11 explicitly reserves `page` for the text-area target
-   inside a `text window`), but §14's reserved-word list and §11 never actually say this for
-   `window`. Phase 4 treats it as true for all three window kinds (not just plain `window`
-   headers) since there's no other sensible reading of that example — §11/§14 should say so
-   explicitly. Also unresolved: `.selected` is marked "selectionindex?" in §7's own table, and
-   `.font`'s value shape (family name? size? both?) is never specified.
-4. **§10's turtle commands have no documented pixel semantics at all** — GRAMMAR.md only says
-   they're "carried over unchanged in name and meaning" from `leopard.bas`, but that file just
-   forwards each one, verbatim and unparsed, straight through to Liberty BASIC's native
-   graphics-window engine (confirmed by reading it — e.g. `pen` literally becomes LB's `color`
-   command). So §10 has no real spec of its own: heading convention (0 = north? clockwise?),
-   what `box`/`ellipse`'s two numbers measure (a corner? a width/height from current position?),
-   whether `goto`/`place` differ only in whether they draw, what `home` resets besides position.
-   Phase 6 reconstructs a best-effort, internally-consistent set of answers to all of this —
-   see IMPLEMENTATION_PLAN.md's Phase 6 decisions-log entry for the specifics — but none of it
-   is verified against a real Liberty BASIC install; §10 should eventually spell these out
-   directly instead of pointing at an undocumented dependency.
-5. **List index assignment (`list[i] = value`) is not implemented**, discovered while writing
-   Phase 12's `todo_capstone.lep` example. The parser accepts it — `_simple_statement` treats
-   any `ast.Index` base the same as `ast.PropertyAccess` and produces a `PropertyAssignment`
-   node either way (GRAMMAR.md never distinguishes the two as assignment targets) — but
-   `Interpreter._exec_PropertyAssignment` only ever handles a `PropertyAccess` target (a GUI
-   control's `.property`); an `Index` target falls through to that method's final `raise` and
-   fails with a confusing "property assignment needs a GUI control (not available yet)" error,
-   even in a program with no window at all. Confirmed empirically: `x = [1, 2, 3]` then
-   `x[2] = 99` raises that exact error. Only reading (`x[2]`) and appending (`.add()`) actually
-   work; there's no way to replace or remove an existing element in place — every example that
-   needs to do so (Phase 12's `todo_capstone.lep`, `05_lists.lep`) works around it by building a
-   whole new list with `.add()` and reassigning the variable to it. Worth deciding either way:
-   implement `list[i] = value` for real (straightforward — mirror `_eval_Index`'s bounds-checked
-   read path), or keep lists add-only/rebuild-only and document that as an intentional design
-   choice in §3/§7 rather than a silent gap.
+1. ~~§14's reserved-word list omitted the §7 control-declaration keywords.~~ **Resolved:** §14 now
+   lists `textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`,
+   `radiobutton`, `checkbox`, `groupbox` explicitly.
+2. ~~`print` was used in §5's `for` loop example but never defined as a keyword or builtin.~~
+   **Resolved:** there is no `print`/console-output builtin, deliberately — §5's example now uses
+   plain assignment instead, and notes that `write_file()` (§12) is a bare script's way to
+   surface output.
+3. ~~`window` doubling as an identifier, `.selected`'s shape, and `.font`'s value shape were all
+   unstated.~~ **Resolved:** §14 now says `window` is reserved as an implicit identifier for the
+   current window in all three window kinds (same pattern as `page`, §11); §7's table now states
+   `.selected` is a 1-based index (`0` = none selected) and `.font` is a plain font-family string.
+4. ~~§10's turtle commands had no documented pixel semantics.~~ **Resolved:** §10 now spells out
+   heading convention, what each drawing command measures, and default turtle state directly,
+   rather than pointing at `leopard.bas`'s undocumented pass-through to Liberty BASIC.
+5. ~~List index assignment (`list[i] = value`) fell through to a confusing "needs a GUI control"
+   error.~~ **Resolved:** `Interpreter._exec_PropertyAssignment` now handles an `Index` target by
+   mutating the list in place (same bounds-checking as reads) — `x = [1, 2, 3]` then `x[2] = 99`
+   works.
 
 ---
 

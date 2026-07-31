@@ -1,4 +1,4 @@
-"""Non-GUI, non-file builtins (GRAMMAR.md §12): str/num/ascii/date/time, plus the
+"""Non-GUI, non-file builtins (GRAMMAR.md §12): str/num/print/ascii/date/time, plus the
 "system" builtins run_program/open_url/open_email.
 
 Each function raises a plain ValueError/TypeError on bad input — the interpreter's
@@ -38,6 +38,15 @@ def leo_num(text: str) -> float | int:
         raise ValueError(f"'{text}' is not a number") from None
 
 
+def leo_print(value: object) -> None:
+    try:
+        print(leo_str(value))
+    except TypeError:
+        raise TypeError(
+            f"print() only supports numbers, strings, and true/false, not {describe_type(value)}"
+        ) from None
+
+
 def leo_ascii(char: str) -> int:
     if not isinstance(char, str) or len(char) != 1:
         raise ValueError("ascii() needs a single character")
@@ -74,6 +83,7 @@ def leo_open_email(address: str) -> None:
 BUILTINS = {
     "str": leo_str,
     "num": leo_num,
+    "print": leo_print,
     "ascii": leo_ascii,
     "date": leo_date,
     "time": leo_time,

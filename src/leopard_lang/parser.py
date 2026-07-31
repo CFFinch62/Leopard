@@ -53,6 +53,7 @@ _TURTLE_COMMANDS = {
 _BUILTINS = {
     TokenType.STR,
     TokenType.NUM,
+    TokenType.PRINT,
     TokenType.NOTICE,
     TokenType.CONFIRM,
     TokenType.ASK,

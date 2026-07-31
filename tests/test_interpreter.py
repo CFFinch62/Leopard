@@ -273,6 +273,20 @@ def test_indexing_a_non_list_is_error():
         run('x = "hello"\ny = x[1]\n')
 
 
+def test_list_index_assignment():
+    assert value_of('x = ["a", "b", "c"]\nx[2] = "z"\n', "x") == ["a", "z", "c"]
+
+
+def test_list_index_assignment_out_of_range():
+    with pytest.raises(LeopardRuntimeError, match="out of range"):
+        run('x = ["a"]\nx[5] = "z"\n')
+
+
+def test_list_index_assignment_on_non_list_is_error():
+    with pytest.raises(LeopardRuntimeError, match="only lists support"):
+        run('x = "hello"\nx[1] = "z"\n')
+
+
 # ---------------------------------------------------------------------------
 # Non-GUI builtins (GRAMMAR.md §12)
 # ---------------------------------------------------------------------------
@@ -297,6 +311,31 @@ def test_num_of_valid_string():
 def test_num_of_invalid_string_is_error():
     with pytest.raises(LeopardRuntimeError, match="is not a number"):
         run('x = num("banana")\n')
+
+
+def test_print_writes_to_stdout(capsys):
+    run('print "hello"\n')
+    assert capsys.readouterr().out == "hello\n"
+
+
+def test_print_number_has_no_trailing_zero(capsys):
+    run("print 10 / 2\n")
+    assert capsys.readouterr().out == "5\n"
+
+
+def test_print_boolean(capsys):
+    run("print true\n")
+    assert capsys.readouterr().out == "true\n"
+
+
+def test_print_multiple_statements(capsys):
+    run('print 1\nprint "two"\n')
+    assert capsys.readouterr().out == "1\ntwo\n"
+
+
+def test_print_of_a_list_is_error():
+    with pytest.raises(LeopardRuntimeError, match="print\\(\\) only supports"):
+        run('x = [1, 2]\nprint x\n')
 
 
 def test_ascii():

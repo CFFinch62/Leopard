@@ -122,6 +122,7 @@ class TokenType(enum.Enum):
     # Builtins (GRAMMAR.md §12)
     STR = "str"
     NUM = "num"
+    PRINT = "print"
     NOTICE = "notice"
     CONFIRM = "confirm"
     ASK = "ask"

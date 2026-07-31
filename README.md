@@ -94,7 +94,7 @@ pip install -e ".[dev,gui,build]"
 pytest
 ```
 
-291 tests, headless (`QT_QPA_PLATFORM=offscreen` set automatically in
+299 tests, headless (`QT_QPA_PLATFORM=offscreen` set automatically in
 `tests/conftest.py`), a few seconds to run. See `IMPLEMENTATION_PLAN.md` for
 the full build history and design decisions behind the language.
 

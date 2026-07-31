@@ -78,7 +78,7 @@ the artificial limits and Windows-only dependencies.
 | | |
 |---|---|
 | **Active phase** | Phase 12 — Docs & examples (complete) — **all 13 phases (0–12) done**; project is now past initial commit and into user-driven follow-up work |
-| **Active task** | Both repos' initial commits are in (`LANGUAGES/Leopard` and `IDE_Suite 2/LEOPARD`, each its own root commit). Since then: two documentation-only passes (see Section 6) and one real language change (`eq`, an alternate word spelling of `=` for equality-only comparisons — see Section 6's newest entry) — none of this is committed yet. |
+| **Active task** | Both repos' initial commits are in (`LANGUAGES/Leopard` and `IDE_Suite 2/LEOPARD`, each its own root commit). Since then: three documentation passes and three real language changes (`eq`; `list[i] = value`, closing out GRAMMAR.md §15; and a new `print` builtin for bare-script console output — see Section 6's newest entry) — none of this is committed yet. |
 | **Last updated** | 2026-07-31 |
 | **Blockers** | None |
 | **Next concrete action** | None within this plan; awaiting the user's direction on when to commit the post-initial-commit changes. This project is now in user-driven testing/bug-fixing/feature-request mode rather than phase-by-phase build-out. |
@@ -548,6 +548,53 @@ IDE, and write a working Leopard program without asking a question.
 *(Append-only, newest first. Anything that isn't already captured in GRAMMAR.md's status list but
 affects implementation goes here — file layout calls, library choices, judgment calls made mid-phase.)*
 
+- **2026-07-31** — Added a real `print value` builtin, closing the console-output gap that
+  §15's resolved question #2 had only papered over by rewording the §5 example (see the entry
+  below) — the user pointed out that a beginner-facing language with no way to print a value to
+  the console at all, forcing every bare script to go through `write_file()` and a manual file-
+  open just to see a result, was a real ergonomics gap worth fixing rather than permanently
+  documenting around. Implementation: `TokenType.PRINT` (`tokens.py`), added to `_BUILTINS` in
+  `parser.py` so it parses both as a bare BASIC-style command (`print i`, reusing the same
+  no-parens "command call" grammar `notice`/`goto`/etc. already use — see `_simple_statement`)
+  and as an ordinary call (`print(i)`); `leo_print()` in `builtins_core.py` reuses `leo_str()`'s
+  existing number/string/boolean formatting (no trailing `.0` on whole floats, `true`/`false` for
+  booleans) so `print` and `str()` never disagree on how a value looks, and raises a
+  `print()`-specific error (not `str()`'s) for anything else (e.g. a list) rather than a
+  confusing cross-function message. No GUI dependency — lives in `builtins_core.py` alongside
+  `str`/`num`, works identically in bare scripts and windowed programs (though a `--windowed`
+  compiled binary's stdout goes nowhere, same pre-existing asymmetry `leopard build`'s two
+  launcher templates already have for error output). Also restored GRAMMAR.md §5's original
+  `print i` for-loop example (reverting the previous pass's `total = total + i` workaround) and
+  added a `print` row to §12's builtin table. Found and fixed a batch of now-stale example content
+  while touring for other `print`-related mentions: `examples/01_variables_and_types.lep` through
+  `05_lists.lep` previously built up a `log` string and called `write_file()` at the end *solely*
+  because `print` didn't exist (01's own comment said so outright) — all five now `print` directly
+  instead, which is both simpler and no longer misleading; `06_file_io.lep` is untouched since
+  file I/O is that lesson's actual subject, not a `print` workaround. `04_functions.lep`'s
+  local-vs-outer-variable demo previously used `append_file()` as its "side effect visible outside
+  the function" example — switched to `print` for the same reason. `examples/README.md`'s intro
+  paragraph and Part 1 table (row 1's `write_file`-workaround wording, row 5's still-stale "no
+  index-assignment" claim left over from the *previous* pass) were both corrected.
+  `tests/test_interpreter.py` gained 5 new tests (`test_print_writes_to_stdout` and 4 more, using
+  `capsys`); `pytest` moved 294 → 299.
+- **2026-07-31** — Closed out all five of GRAMMAR.md §15's open questions. Four were
+  documentation-only (§14 now lists the §7 control-declaration keywords and states `window` is
+  reserved as an implicit identifier the same way `page` is; §7's table states `.selected` is a
+  1-based index (`0` = none) and `.font` is a plain font-family string; §5's `for`-loop example no
+  longer references the never-implemented `print`, using plain assignment instead, with a note
+  that `write_file()` is a bare script's only output path; §10 now spells out heading/drawing
+  semantics directly instead of pointing at `leopard.bas`'s undocumented Liberty BASIC pass-
+  through). The fifth was a real interpreter fix: `_exec_PropertyAssignment`
+  (`interpreter.py`) now handles an `ast.Index` target by mutating the list in place, mirroring
+  `_eval_Index`'s bounds-checked read path (out-of-range and non-list-target both raise the same
+  errors reads already do) — `list[i] = value` works. Three new tests added
+  (`test_list_index_assignment`, `..._out_of_range`, `..._on_non_list_is_error`); `pytest` moved
+  291 → 294. Updated the two examples whose comments documented the old gap: `05_lists.lep` now
+  demonstrates `fruits[1] = "apricot"` instead of just claiming it's impossible;
+  `todo_capstone.lep`'s "mark done" handler was simplified from a rebuild-the-list workaround to
+  `done_flags[row] = not done_flags[row]` (the "remove" handler still rebuilds — there's still no
+  way to delete an item, only replace or append); `examples/README.md`'s Part 4 note and
+  GRAMMAR.md §15 itself were reworded from "open question" to "resolved."
 - **2026-07-31** — Fixed cross-repo doc links after realizing both repos are now published
   separately on GitHub (`https://github.com/CFFinch62/Leopard` and
   `https://github.com/CFFinch62/LEOPARD-IDE`) — every earlier doc pass wrote cross-references as

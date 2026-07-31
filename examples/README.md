@@ -9,12 +9,12 @@ cd examples
 leopard run 01_variables_and_types.lep
 ```
 
-Run bare (no-window) scripts from inside this `examples/` folder — a few of
-them write a small output file (e.g. `01_output.txt`) you can open afterward
-to see what the program computed, since a bare script has no `print`
-builtin (see lesson 01). GUI examples that reference a relative file path
-(`controls_showcase.lep`'s icon button, `sound_demo.lep`'s chime) also
-expect to be run from this folder.
+Run bare (no-window) scripts from inside this `examples/` folder — most
+print straight to the console (see lesson 01), and a few also write a small
+output file (e.g. `06_output.txt`) to demonstrate file I/O specifically.
+GUI examples that reference a relative file path (`controls_showcase.lep`'s
+icon button, `sound_demo.lep`'s chime) also expect to be run from this
+folder.
 
 ## Part 1 — The language itself (no window)
 
@@ -24,7 +24,7 @@ expect to be run from this folder.
 | 2 | [`02_operators_and_expressions.lep`](02_operators_and_expressions.lep) | Every operator (`+ - * / % ^`, `&`, comparisons, `and`/`or`/`not`), why `+`/`&` are picky on purpose, and `eq` as a word alternative to `=` for equality only |
 | 3 | [`03_control_flow.lep`](03_control_flow.lep) | `if`/`elseif`/`else`, `while`, `for..to..step` (including counting down), `break`, `continue` |
 | 4 | [`04_functions.lep`](04_functions.lep) | Functions with and without `return`, recursion, and why a function can't mutate an outer variable by assigning to it |
-| 5 | [`05_lists.lep`](05_lists.lep) | Building, growing (`.add()`), iterating, and rebuilding lists (there's no in-place remove or index-assignment — see below) |
+| 5 | [`05_lists.lep`](05_lists.lep) | Building, growing (`.add()`), iterating, replacing an item in place (`list[i] = value`), and rebuilding lists (there's still no in-place remove — see below) |
 | 6 | [`06_file_io.lep`](06_file_io.lep) | `write_file`/`append_file`/`read_file`/`delete_file`/`make_dir`/`remove_dir`/`file_exists` |
 
 ## Part 2 — Windows and controls
@@ -52,12 +52,11 @@ expect to be run from this folder.
 | 15 | [`fizzbuzz.lep`](fizzbuzz.lep) | Loops, conditionals, a function, string joining, and a list-backed control, all in one window |
 | 16 | [`todo_capstone.lep`](todo_capstone.lep) | A small todo-list app: controls, events, functions, parallel lists standing in for "records," and saving state to a file on close |
 
-Lessons 5 and 16 both hit the same real language limit worth knowing up
-front: **`list[i] = value` doesn't work** — you can read an item (`list[i]`)
-and append one (`.add()`), but not replace or remove one in place. Both
-lessons show the standard workaround: build a fresh list with `.add()` and
-reassign the whole variable to it. See `GRAMMAR.md`'s §15, open question 5,
-for the full detail.
+Lessons 5 and 16 both demonstrate the same real language limit worth knowing
+up front: lists can replace an item in place (`list[i] = value`) and append
+one (`.add()`), but there's no built-in way to remove one — both lessons show
+the standard workaround for removal: build a fresh list with `.add()` and
+reassign the whole variable to it.
 
 See `LANGUAGES/Leopard/LANGUAGE_GUIDE.md` for a prose walkthrough of the same
 material, and `LANGUAGES/Leopard/GRAMMAR.md` for the complete, precise spec.

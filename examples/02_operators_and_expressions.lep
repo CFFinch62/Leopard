@@ -25,23 +25,20 @@ logic_and = (a > 5) and (b < 5)
 logic_or = (a > 100) or (b < 5)
 negated = not is_equal
 
-log = ""
-log = log & "sum: " & str(sum) & "\n"
-log = log & "difference: " & str(difference) & "\n"
-log = log & "product: " & str(product) & "\n"
-log = log & "quotient: " & str(quotient) & "\n"
-log = log & "remainder: " & str(remainder) & "\n"
-log = log & "power: " & str(power) & "\n"
-log = log & "joined: " & joined & "\n"
-log = log & "is_equal: " & str(is_equal) & "\n"
-log = log & "is_equal_word (using eq instead of =): " & str(is_equal_word) & "\n"
-log = log & "is_greater: " & str(is_greater) & "\n"
-log = log & "is_at_least: " & str(is_at_least) & "\n"
-log = log & "logic_and: " & str(logic_and) & "\n"
-log = log & "logic_or: " & str(logic_or) & "\n"
-log = log & "negated: " & str(negated) & "\n"
-
-write_file("02_output.txt", log)
+print "sum: " & str(sum)
+print "difference: " & str(difference)
+print "product: " & str(product)
+print "quotient: " & str(quotient)
+print "remainder: " & str(remainder)
+print "power: " & str(power)
+print "joined: " & joined
+print "is_equal: " & str(is_equal)
+print "is_equal_word (using eq instead of =): " & str(is_equal_word)
+print "is_greater: " & str(is_greater)
+print "is_at_least: " & str(is_at_least)
+print "logic_and: " & str(logic_and)
+print "logic_or: " & str(logic_or)
+print "negated: " & str(negated)
 
 # Two deliberate design choices worth knowing, both enforced at runtime:
 #   "a" + "b"     -> error: + only works on numbers. Use & to join text instead.

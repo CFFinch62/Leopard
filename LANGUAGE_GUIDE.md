@@ -417,6 +417,7 @@ functions for everything from type conversion to file I/O:
 
 | Function | Does |
 |---|---|
+| `print value` | write a number, string, or `true`/`false` to the console, with a newline |
 | `str(value)` | convert a number or boolean to a string |
 | `num(text)` | convert a string to a number |
 | `ascii(char)` | a single character's character code |
