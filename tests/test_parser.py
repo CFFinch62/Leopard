@@ -109,6 +109,13 @@ def test_precedence_concat_tighter_than_comparison():
     assert value.left.op == "&"
 
 
+def test_eq_word_is_same_operator_as_eq_symbol():
+    prog = parse_src("x = a eq b\n")
+    value = prog.body[0].value
+    assert isinstance(value, ast.BinaryOp)
+    assert value.op == "="
+
+
 def test_precedence_not_looser_than_comparison():
     prog = parse_src("x = not a = b\n")
     value = prog.body[0].value

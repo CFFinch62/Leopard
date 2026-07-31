@@ -115,12 +115,32 @@ escapes the one call it happened in.
 |---|---|---|
 | Arithmetic | `+  -  *  /  %  ^` | `%` is modulo (remainder), `^` is power |
 | Joining text | `&` | `"Score: " & str(score)` |
-| Comparison | `=  <>  <  >  <=  >=` | `=` means "equal to" — there's no separate `==` |
+| Comparison | `=  <>  <  >  <=  >=`, and `eq` | `=` means both "assign" and "equal to" — see below |
 | Logic | `and  or  not` | Plain English words, not `&&`/`||` |
 | Grouping | `( )` | Normal precedence rules apply |
 
-Two things are worth calling out because they're deliberately different from most
+Three things are worth calling out because they're deliberately different from most
 other languages:
+
+**`=` means both "assign" and "equal to"** — there's no separate `==`. Leopard can
+tell which one you mean from where `=` appears (`x = 5` is an assignment; `if x = 5:`
+is a comparison), so this is never actually ambiguous to the language. It can still
+read a little ambiguous to a *person* skimming code quickly, though, especially
+with an assignment and a comparison sitting near each other — so Leopard also has
+`eq`, a word that only ever means "equal to," never "assign," if you'd rather write
+it out for clarity:
+
+```
+found = false             # assignment — "="
+if fruit eq "apple":      # comparison — "eq" reads unambiguously as a check
+    found = true
+```
+
+`fruit eq "apple"` and `fruit = "apple"` do exactly the same thing — `eq` is just
+another way to spell the equality comparison, not a different operator. Use
+whichever reads more clearly to you; the rest of this guide mostly sticks with `=`
+since that's what most existing Leopard code uses, but reach for `eq` anywhere the
+double meaning of `=` would slow a reader down.
 
 **`+` only works on numbers.** If you write `"a" + "b"` expecting `"ab"`, Leopard
 stops you with an error suggesting `&` instead. Use `&` to join text:

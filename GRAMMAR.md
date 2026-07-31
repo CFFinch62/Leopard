@@ -18,6 +18,7 @@ For build status, phase checklists, and where implementation currently stands, s
 9. Modulo is **`%`**, not `mod`. `else if` is **`elseif`**, one word. String concatenation is **`&`**, not `+` — `+` is numeric-only.
 10. `&` requires **explicit conversion** — no auto-stringifying numbers/booleans. Deliberate friction so beginners learn strings and numbers are different types.
 11. `page` (the implicit text-area target in `text window` blocks) is a **reserved word**, not usable as a variable/function/control name anywhere in a program.
+12. `eq` is a **word alternative for `=` in comparison position only** — `=` still also means assignment, unchanged; `eq` never does. Added for readability, not to replace `=` (see §4).
 
 Everything below builds on those calls. Nothing here is final — flag anything that should change.
 
@@ -111,11 +112,28 @@ function body.
 |---|---|---|
 | Arithmetic | `+  -  *  /  %  ^` | `%` = modulo, `^` = power |
 | String concatenation | `&` | dedicated operator — `"Score: " & str(score)` |
-| Comparison | `=  <>  <  >  <=  >=` | `=` doubles as equality (BASIC-style, no separate `==`) |
+| Comparison | `=  <>  <  >  <=  >=`, and `eq` | `=` doubles as equality (BASIC-style, no separate `==`); `eq` is an alternate spelling of `=` for equality only — see below |
 | Logical | `and  or  not` | English words, not `&&`/`\|\|` — matches BASIC/beginner spirit |
 | Grouping | `( )` | standard precedence |
 
 `+` is numeric-only now that `&` owns concatenation — using `+` on two strings is a runtime error that suggests `&` (a beginner writing `"a" + "b"` gets pointed at the right operator instead of silently getting `"ab"` and being confused later when `+` behaves differently on numbers-as-strings).
+
+**`eq` — a word alternative for `=`, comparison-only.** `=` still does double duty (assignment
+*and* equality, per status #9) and that isn't changing — `eq` was added alongside it, not instead
+of it, for programs where writing out `eq` makes an equality check easier to spot at a glance than
+`=` does, especially next to an actual assignment on a nearby line:
+
+```
+found = false             # assignment — "="
+if fruit eq "apple":      # comparison — "eq", reads unambiguously as a check, not a store
+    found = true
+```
+
+`a eq b` and `a = b` produce the exact same result — `eq` is parsed into the identical AST node as
+`=` in comparison position, so there's no behavioral difference, only a readability one. It's
+purely optional: existing code using `=` for comparison needs no changes, and there's no equivalent
+word form for `<>`/`<`/`>`/`<=`/`>=` (only equality gets one, since equality is the one case where
+`=` is also a completely different operator — assignment — depending on where it appears).
 
 `&` requires both sides to already be strings — `"Score: " & 5` is also a runtime error, pointing at `str()`. No auto-coercion, on either side. It's a small amount of friction in exchange for beginners internalizing early that `5` (number) and `"5"` (string) aren't the same thing — the original's `""; x$` idiom papered over that distinction, and it's exactly the kind of thing that becomes a confusing surprise later once a beginner moves on to a language that isn't so forgiving.
 
@@ -385,7 +403,7 @@ window "Greeter", 360, 160:
 
 Consolidated list of everything that can't be used as a variable, function, or control name, now that the vocabulary has grown past the point of keeping this in your head:
 
-`window`, `text window`, `graphics window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`, `page`
+`window`, `text window`, `graphics window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`, `page`
 
 Plus every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `drawbmp`) and every builtin from Section 12.
 

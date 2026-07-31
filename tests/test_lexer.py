@@ -56,6 +56,7 @@ def test_boolean_keywords():
         ("^", TokenType.CARET),
         ("&", TokenType.AMP),
         ("=", TokenType.EQ),
+        ("eq", TokenType.EQ_WORD),
         ("<>", TokenType.NEQ),
         ("<", TokenType.LT),
         (">", TokenType.GT),

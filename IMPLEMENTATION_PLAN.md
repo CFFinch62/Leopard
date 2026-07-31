@@ -77,11 +77,11 @@ the artificial limits and Windows-only dependencies.
 
 | | |
 |---|---|
-| **Active phase** | Phase 12 — Docs & examples (complete, plus a post-Phase-12 documentation/examples follow-up) — **all 13 phases (0–12) done** |
-| **Active task** | None — the plan's full scope is implemented, documented, and verified. Next step is outside this plan: an initial git commit (both `LANGUAGES/Leopard/` and `IDE_Suite 2/LEOPARD/` are still uncommitted working trees), followed by the user's own independent testing. |
+| **Active phase** | Phase 12 — Docs & examples (complete) — **all 13 phases (0–12) done**; project is now past initial commit and into user-driven follow-up work |
+| **Active task** | Both repos' initial commits are in (`LANGUAGES/Leopard` and `IDE_Suite 2/LEOPARD`, each its own root commit). Since then: two documentation-only passes (see Section 6) and one real language change (`eq`, an alternate word spelling of `=` for equality-only comparisons — see Section 6's newest entry) — none of this is committed yet. |
 | **Last updated** | 2026-07-31 |
 | **Blockers** | None |
-| **Next concrete action** | None within this plan. Awaiting the user's go-ahead for an initial commit in both repos; after that, this project moves into user-driven testing/bug-fixing rather than phase-by-phase build-out. |
+| **Next concrete action** | None within this plan; awaiting the user's direction on when to commit the post-initial-commit changes. This project is now in user-driven testing/bug-fixing/feature-request mode rather than phase-by-phase build-out. |
 
 *Phases 0–12 are all done and verified. Phase 12 added: `IDE_Suite 2/LEOPARD/examples/` (5
 sample programs — `greeter.lep`, `fizzbuzz.lep`, `menus.lep`, `turtle_demo.lep`, `notes.lep`,
@@ -548,6 +548,33 @@ IDE, and write a working Leopard program without asking a question.
 *(Append-only, newest first. Anything that isn't already captured in GRAMMAR.md's status list but
 affects implementation goes here — file layout calls, library choices, judgment calls made mid-phase.)*
 
+- **2026-07-31** — First real post-Phase-12 *language* change (everything before this entry today
+  was documentation-only): added `eq` as a word alternative to `=` in comparison position,
+  additive only — `=` still means both assignment and equality exactly as before, nothing about
+  its existing behavior changed. Motivated by the user reconsidering `=`'s original double-duty
+  design (Phase 2's decisions log) after living with it — rather than the larger breaking change
+  of making `=` assignment-only and `eq` the only comparison spelling (estimated and discussed
+  first: that would have touched most of the example/test corpus, since `=`-for-equality already
+  appears throughout nearly every `.lep` file in both this repo and the IDE's `examples/`), this
+  keeps `=` untouched and gives `eq` as a purely opt-in, more-readable-at-a-glance alternative
+  next to an assignment. Implementation was small exactly as scoped: one new `TokenType.EQ_WORD =
+  "eq"` (`tokens.py`) — picked up automatically as a keyword by the existing `KEYWORDS` dict
+  comprehension, no lexer changes needed — and one added entry in `parser.py`'s `_COMPARISON_OPS`
+  mapping `EQ_WORD` to the same `"="` op string `EQ` already maps to, so `a eq b` parses to the
+  exact same `BinaryOp(op="=", ...)` node as `a = b` and the interpreter needed zero changes.
+  `eq` was deliberately *not* added to `EXPRESSION_KEYWORDS` (it's an infix operator, not
+  something that can start an expression, same as `=`/`<>`/etc. already aren't in that set) and
+  *not* given word forms for `<>`/`<`/`>`/`<=`/`>=` — only `=` has the assignment/comparison
+  double meaning that makes a disambiguating word spelling worth having; the others were never
+  ambiguous. Added `eq` to GRAMMAR.md's status list (#12), §4's operator table and prose, and §14's
+  reserved words; added a matching explanation to LANGUAGE_GUIDE.md's "Expressions and operators"
+  section; added `eq` usage (with a comment explaining why) to
+  `IDE_Suite 2/LEOPARD/examples/02_operators_and_expressions.lep`, the existing operators lesson,
+  rather than a new file, since it's a variant spelling of something that lesson already covers,
+  not a new concept needing its own lesson. New tests: a lexer case (`"eq"` tokenizes to the new
+  type), a parser case (`a eq b` and `a = b` produce identical AST), and two interpreter cases
+  added to the existing parametrized comparison-operator test — 4 new tests total. `pytest`: 291
+  tests (287 + 4 new), all passing.
 - **2026-07-31** — Second post-Phase-12 documentation pass, prompted by two specific reader
   concerns: was error handling clearly described, and was scoping demonstrated rather than just
   stated. Neither GRAMMAR.md nor LANGUAGE_GUIDE.md had ever had a dedicated section on error

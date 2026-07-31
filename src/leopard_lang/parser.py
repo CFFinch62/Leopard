@@ -109,6 +109,7 @@ _EXPRESSION_START_TYPES = {
 
 _COMPARISON_OPS = {
     TokenType.EQ: "=",
+    TokenType.EQ_WORD: "=",  # `eq` — same operator as `=`, just a word spelling (GRAMMAR.md §4)
     TokenType.NEQ: "<>",
     TokenType.LT: "<",
     TokenType.GT: ">",

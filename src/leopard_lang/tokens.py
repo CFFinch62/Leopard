@@ -45,6 +45,12 @@ class TokenType(enum.Enum):
     COLON = ":"
     DOT = "."
 
+    # `eq` — a word alternative for equality-only comparison, so a program can use `=`
+    # for assignment and `eq` for comparison unambiguously if that's clearer to read
+    # (both spellings remain valid; see GRAMMAR.md §4 and IMPLEMENTATION_PLAN.md's
+    # decisions log for why `=` itself was kept doing double duty rather than split).
+    EQ_WORD = "eq"
+
     # Core keywords (GRAMMAR.md §14)
     WINDOW = "window"
     TEXT = "text"
