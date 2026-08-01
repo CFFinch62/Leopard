@@ -1,0 +1,33 @@
+# Sound - play_sound/stop_sound (short one-shot effects, WAV) and
+# play_music/pause_music/stop_music (longer playback, WAV/MP3/MIDI).
+#
+# assets/chime.wav is a small synthetic tone bundled with this example so it
+# runs out of the box; swap in your own WAV/MP3/MIDI file to try other formats.
+
+window "Sound Demo", 420, 220:
+
+    label "One-shot sound effect (assets/chime.wav)" as effectLabel at 10, 10, 380, 20
+    button "Play chime" as playChimeButton at 10, 34, 150, 24
+    button "Stop chime" as stopChimeButton at 170, 34, 150, 24
+
+    label "Music playback (play/pause/stop)" as musicLabel at 10, 74, 380, 20
+    button "Play music" as playMusicButton at 10, 98, 120, 24
+    button "Pause music" as pauseMusicButton at 140, 98, 120, 24
+    button "Stop music" as stopMusicButton at 270, 98, 120, 24
+
+    label "play_music/pause_music/stop_music also accept your own MP3 or MIDI files." as noteLabel at 10, 140, 390, 40
+
+    on click playChimeButton:
+        play_sound("assets/chime.wav")
+
+    on click stopChimeButton:
+        stop_sound()
+
+    on click playMusicButton:
+        play_music("assets/chime.wav")
+
+    on click pauseMusicButton:
+        pause_music()
+
+    on click stopMusicButton:
+        stop_music()

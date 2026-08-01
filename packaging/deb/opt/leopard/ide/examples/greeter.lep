@@ -1,0 +1,21 @@
+# Greeter — a first window: controls, an event handler, and a function.
+# Type your name and click Greet.
+
+window "Greeter", 360, 160:
+
+    label "Your name:" as nameLabel at 10, 10, 100, 24
+    textbox as nameBox at 120, 10, 200, 24
+    button "Greet" as btnGreet at 120, 44, 80, 24
+    label "" as resultLabel at 10, 84, 320, 24
+
+    function greeting_for(who):
+        if who = "":
+            return "Please enter a name."
+        else:
+            return "Hello, " & who & "!"
+
+    on click btnGreet:
+        resultLabel.text = greeting_for(nameBox.text)
+
+    on close:
+        confirm("Really quit?")

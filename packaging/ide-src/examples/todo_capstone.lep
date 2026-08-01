@@ -1,0 +1,82 @@
+# Capstone - a small todo-list app combining most of what the other lessons
+# covered on their own: a window with several controls, events, functions,
+# lists, and file I/O on close.
+#
+# Task text and "done" state are tracked in two parallel lists (tasks and
+# done_flags) that always stay the same length, in the same order, rather
+# than as one list of "task objects" - Leopard has no object/record type, so
+# this is the normal way to keep several related pieces of data about the
+# same items. "Mark done" below replaces a slot in place with list[i] = value;
+# Leopard lists have no built-in way to remove an item, so "remove" instead
+# builds a brand new list and reassigns the whole variable to it, the same
+# pattern lesson 05 introduced.
+
+window "Todo List", 420, 420:
+
+    label "New task:" as newTaskLabel at 10, 10, 90, 24
+    textbox as taskBox at 100, 10, 200, 24
+    button "Add" as addButton at 310, 10, 90, 24
+
+    listbox as taskList at 10, 44, 390, 260
+    button "Toggle done" as doneButton at 10, 314, 120, 24
+    button "Remove" as removeButton at 140, 314, 120, 24
+    label "0 task(s), 0 done" as summaryLabel at 10, 348, 380, 20
+
+    tasks = []
+    done_flags = []
+
+    function refresh_display():
+        display = []
+        for i = 1 to tasks.length:
+            prefix = "[ ] "
+            if done_flags[i]:
+                prefix = "[x] "
+            display.add(prefix & tasks[i])
+        taskList.items = display
+
+        done_count = 0
+        for i = 1 to done_flags.length:
+            if done_flags[i]:
+                done_count = done_count + 1
+        summaryLabel.text = str(tasks.length) & " task(s), " & str(done_count) & " done"
+
+    on click addButton:
+        if taskBox.text = "":
+            notice("Type a task first.")
+        else:
+            tasks.add(taskBox.text)
+            done_flags.add(false)
+            taskBox.text = ""
+            refresh_display()
+
+    on click doneButton:
+        row = taskList.selected
+        if row = 0:
+            notice("Select a task first.")
+        else:
+            done_flags[row] = not done_flags[row]
+            refresh_display()
+
+    on click removeButton:
+        row = taskList.selected
+        if row = 0:
+            notice("Select a task first.")
+        else:
+            new_tasks = []
+            new_flags = []
+            for i = 1 to tasks.length:
+                if i <> row:
+                    new_tasks.add(tasks[i])
+                    new_flags.add(done_flags[i])
+            tasks = new_tasks
+            done_flags = new_flags
+            refresh_display()
+
+    on close:
+        summary = ""
+        for i = 1 to tasks.length:
+            state = "pending"
+            if done_flags[i]:
+                state = "done"
+            summary = summary & state & ": " & tasks[i] & "\n"
+        write_file("todo_capstone_output.txt", summary)

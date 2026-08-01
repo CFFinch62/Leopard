@@ -1,0 +1,13 @@
+# Turtle graphics — pen state, movement, and shapes.
+
+graphics window "Turtle Demo", 640, 480:
+    pen "red"
+    size 3
+    down
+    go 100
+    turn 90
+    go 100
+    up
+    goto 300, 300
+    fill "blue"
+    circlefilled 40

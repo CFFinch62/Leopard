@@ -1,0 +1,43 @@
+# Lesson 05 - Lists
+#
+# Lists are 1-based (fruits[1] is the first element), grow with .add(), and
+# report their size with .length. An existing item can be replaced in place
+# with list[i] = value. There's still no built-in way to remove an item -
+# see the "rebuild the list" pattern below.
+
+fruits = ["apple", "banana", "cherry"]
+
+print "fruits.length: " & str(fruits.length)
+print "fruits[1]: " & fruits[1]
+print "fruits[fruits.length]: " & fruits[fruits.length]
+
+fruits.add("date")
+print "after .add(\"date\"), length: " & str(fruits.length)
+
+# Replace an item in place with list[i] = value.
+fruits[1] = "apricot"
+print "fruits[1] after reassignment: " & fruits[1]
+
+# Iterate a list with a for loop over its indices.
+all_fruits = ""
+for i = 1 to fruits.length:
+    all_fruits = all_fruits & fruits[i] & " "
+print "all fruits: " & all_fruits
+
+# Building up a new list from scratch, e.g. filtering out "banana": Leopard
+# lists have no built-in way to remove an item, so the normal pattern is to
+# build a fresh list with .add() and then reassign the variable to point at
+# it.
+without_banana = []
+for i = 1 to fruits.length:
+    if fruits[i] <> "banana":
+        without_banana.add(fruits[i])
+fruits = without_banana
+print "after removing banana: " & str(fruits.length) & " items"
+
+# A running total over a list of numbers.
+scores = [10, 20, 30, 40]
+total = 0
+for i = 1 to scores.length:
+    total = total + scores[i]
+print "sum of scores: " & str(total)

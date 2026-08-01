@@ -1,0 +1,28 @@
+# Menus — full menu support: submenus, separators, and a checkable item.
+# Try File > New, toggle View > Show Toolbar, and File > Exit.
+
+window "Editor", 500, 400:
+
+    textedit as editorBox at 0, 20, 500, 380
+    checkbox "Toolbar placeholder" as toolbar at 0, 0, 200, 20
+
+    menu "&File" as fileMenu:
+        item "&New..." as mnuNew
+        item "&Open..." as mnuOpen
+        separator
+        submenu "Open &Recent" as mnuRecent:
+            item "report.lep" as mnuRecent1
+        separator
+        item "E&xit" as mnuExit
+
+    menu "&View" as viewMenu:
+        checkitem "Show &Toolbar" as mnuToolbar
+
+    on click mnuNew:
+        editorBox.text = ""
+
+    on click mnuExit:
+        close_window()
+
+    on change mnuToolbar:
+        toolbar.visible = mnuToolbar.checked

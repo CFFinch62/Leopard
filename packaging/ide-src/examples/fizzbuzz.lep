@@ -1,0 +1,22 @@
+# FizzBuzz — variables, for loops, if/elseif/else, functions, string
+# concatenation (&), and lists (.add()). Click Run FizzBuzz to fill the list.
+
+window "FizzBuzz", 300, 400:
+
+    button "Run FizzBuzz" as btnRun at 10, 10, 150, 24
+    listbox as resultsList at 10, 44, 260, 330
+
+    function classify(n):
+        if n % 15 = 0:
+            return "FizzBuzz"
+        elseif n % 3 = 0:
+            return "Fizz"
+        elseif n % 5 = 0:
+            return "Buzz"
+        else:
+            return str(n)
+
+    on click btnRun:
+        resultsList.items = []
+        for i = 1 to 30:
+            resultsList.items.add(classify(i))

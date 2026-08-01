@@ -1,0 +1,14 @@
+# Notes — a fully editable text window bound to the reserved `page` identifier.
+# Type in the page; closing the window saves what you wrote to notes.txt.
+
+text window "Notes", 600, 400:
+
+    label "" as wordCountLabel at 0, 0, 200, 20
+
+    page.text = "Start typing..."
+
+    on change page:
+        wordCountLabel.text = "Editing..."
+
+    on close:
+        write_file("notes.txt", page.text)

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Leopard IDE
+Comment=Create and run Leopard programs
+Exec=/usr/bin/leopard-ide
+Icon=leopard
+Categories=Development;IDE;
+Terminal=false
+StartupNotify=true

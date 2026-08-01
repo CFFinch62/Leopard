@@ -1,0 +1,2 @@
+-e ../../../LANGUAGES/Leopard[gui,build]
+pyinstaller>=6.0.0

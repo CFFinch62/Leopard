@@ -1,0 +1,47 @@
+# Lesson 03 - Control flow: if/elseif/else, while, for/step, break, continue
+
+# if / elseif / else
+score = 72
+if score > 90:
+    grade = "A"
+elseif score > 80:
+    grade = "B"
+elseif score > 70:
+    grade = "C"
+else:
+    grade = "D"
+print "score " & str(score) & " -> grade " & grade
+
+# while
+count = 0
+total = 0
+while count < 5:
+    count = count + 1
+    total = total + count
+print "sum 1..5 via while: " & str(total)
+
+# for ... to ... step (step defaults to 1, and can count downward)
+evens = ""
+for i = 2 to 10 step 2:
+    evens = evens & str(i) & " "
+print "evens 2..10: " & evens
+
+countdown = ""
+for i = 5 to 1 step -1:
+    countdown = countdown & str(i) & " "
+print "countdown: " & countdown
+
+# break and continue
+first_multiple_of_7 = 0
+for i = 1 to 100:
+    if i % 7 = 0:
+        first_multiple_of_7 = i
+        break
+print "first multiple of 7: " & str(first_multiple_of_7)
+
+odds_under_10 = ""
+for i = 1 to 10:
+    if i % 2 = 0:
+        continue
+    odds_under_10 = odds_under_10 & str(i) & " "
+print "odds under 10: " & odds_under_10

@@ -1,0 +1,47 @@
+# Lesson 02 - Operators and expressions
+
+a = 10
+b = 3
+
+sum = a + b
+difference = a - b
+product = a * b
+quotient = a / b
+remainder = a % b
+power = a ^ b
+
+# & joins strings together (it's Leopard's "+" for text).
+joined = "a=" & str(a) & ", b=" & str(b)
+
+# "=" means both "assign" and "equal to" - which one depends on where it
+# appears. "eq" is an alternate spelling that only ever means "equal to",
+# for whenever writing that out is clearer than reusing "=" again.
+is_equal = (a = b)
+is_equal_word = (a eq b)
+is_greater = (a > b)
+is_at_least = (a >= b)
+
+logic_and = (a > 5) and (b < 5)
+logic_or = (a > 100) or (b < 5)
+negated = not is_equal
+
+print "sum: " & str(sum)
+print "difference: " & str(difference)
+print "product: " & str(product)
+print "quotient: " & str(quotient)
+print "remainder: " & str(remainder)
+print "power: " & str(power)
+print "joined: " & joined
+print "is_equal: " & str(is_equal)
+print "is_equal_word (using eq instead of =): " & str(is_equal_word)
+print "is_greater: " & str(is_greater)
+print "is_at_least: " & str(is_at_least)
+print "logic_and: " & str(logic_and)
+print "logic_or: " & str(logic_or)
+print "negated: " & str(negated)
+
+# Two deliberate design choices worth knowing, both enforced at runtime:
+#   "a" + "b"     -> error: + only works on numbers. Use & to join text instead.
+#   "n = " & 5    -> error: & only works on strings. Wrap the number in str() first.
+# Neither line above is executed here on purpose - both would stop the
+# program immediately with a runtime error.
