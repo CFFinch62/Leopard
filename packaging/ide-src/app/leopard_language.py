@@ -11,6 +11,7 @@ spawning a second one.
 from __future__ import annotations
 
 import contextlib
+import os
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional
@@ -93,6 +94,18 @@ class LeopardHighlighter(RuleBasedHighlighter):
 
 
 class LeopardLanguageProvider(LanguageProvider):
+    def __init__(self) -> None:
+        # run_window() returns a top-level LeopardWindow with no C++ parent, so
+        # PyQt owns it from the Python side: nothing else keeps the wrapper alive,
+        # and it (and its children, e.g. QMediaPlayer) get garbage-collected the
+        # instant run() returns unless we hold a reference here. Windows that
+        # happened to have `on click` handlers survived by luck, via a reference
+        # cycle (button -> connected closure -> interpreter -> window) that only
+        # the cyclic GC — not immediate refcounting — would clean up; windows with
+        # no handlers (e.g. graphics_window turtle demos) had no such cycle and
+        # vanished before ever being painted.
+        self._windows: List = []
+
     @property
     def name(self) -> str:
         return "Leopard"
@@ -106,18 +119,27 @@ class LeopardLanguageProvider(LanguageProvider):
     ) -> Optional[QSyntaxHighlighter]:
         return LeopardHighlighter(document, syntax_colors)
 
-    def run(self, source: str, terminal: "TerminalPane") -> None:
+    def run(self, source: str, terminal: "TerminalPane", source_path: Optional[Path] = None) -> None:
         try:
             program = parse(tokenize(source))
         except LeopardError as exc:
             terminal.write(f"{exc}\n")
             return
 
+        if source_path is not None:
+            # Relative paths in the script (play_sound, read_file, icons, ...) are
+            # resolved against the script's own directory, not the IDE's cwd — same
+            # as `leopard run` (see leopard_lang.cli). Not restored afterwards: a GUI
+            # window keeps running (and its buttons keep resolving relative asset
+            # paths) after this call returns, since it shares the IDE's event loop.
+            os.chdir(source_path.resolve().parent)
+
         try:
             if program.window is not None:
                 from leopard_lang.gui.app_host import run_window
 
-                run_window(program, existing_app=QApplication.instance())
+                window = run_window(program, existing_app=QApplication.instance())
+                self._windows.append(window)
             else:
                 stdout = _TerminalStdout(terminal)
                 with contextlib.redirect_stdout(stdout):

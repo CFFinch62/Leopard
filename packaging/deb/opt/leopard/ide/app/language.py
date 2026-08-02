@@ -44,8 +44,12 @@ class LanguageProvider(ABC):
         return None
 
     @abstractmethod
-    def run(self, source: str, terminal: "TerminalPane") -> None:
-        """Execute `source` (the active editor's full text), writing output to `terminal`."""
+    def run(self, source: str, terminal: "TerminalPane", source_path: Optional[Path] = None) -> None:
+        """Execute `source` (the active editor's full text), writing output to `terminal`.
+
+        `source_path` is the editor's file on disk, if it has been saved — used to
+        resolve relative paths (assets, file I/O) the same way `leopard run` does.
+        """
 
     def handle_input(self, text: str, terminal: "TerminalPane") -> None:
         """Handle a line typed into the console's input field (e.g. forward to a REPL)."""
@@ -65,6 +69,6 @@ class PlainTextLanguageProvider(LanguageProvider):
     def name(self) -> str:
         return "Plain Text"
 
-    def run(self, source: str, terminal: "TerminalPane") -> None:
+    def run(self, source: str, terminal: "TerminalPane", source_path: Optional[Path] = None) -> None:
         terminal.write(source)
         terminal.write("\n[Execution placeholder: implement LanguageProvider.run() for your language]\n")

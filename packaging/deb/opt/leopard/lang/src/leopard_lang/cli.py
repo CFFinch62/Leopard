@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -31,9 +32,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.command == "run":
-        source = args.script.read_text(encoding="utf-8")
+        script_path = args.script.resolve()
+        source = script_path.read_text(encoding="utf-8")
         try:
             program = parse(tokenize(source))
+            # Relative paths in the script (play_sound, read_file, icons, ...) are
+            # resolved against the script's own directory, not the shell's cwd.
+            os.chdir(script_path.parent)
             if program.window is not None:
                 _run_gui(program)
             else:

@@ -21,6 +21,8 @@ from app.file_browser import FileBrowserWidget
 from app.find_replace import FindReplaceDialog
 from app.language import LanguageProvider
 from app.leopard_language import LeopardLanguageProvider
+from app.settings import SettingsManager
+from app.settings_dialog import SettingsDialog
 from app.terminal import TerminalPane
 from app.themes import ThemeManager
 
@@ -33,6 +35,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Leopard IDE")
         self.theme_manager = ThemeManager(self)
         self.language_provider: LanguageProvider = LeopardLanguageProvider()
+        self.settings_manager = SettingsManager()
         self._settings = QSettings("LeopardIDE", "Leopard IDE")
         self._setup_ui()
         self._setup_menus()
@@ -54,7 +57,7 @@ class MainWindow(QMainWindow):
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
         layout.addWidget(self.splitter)
 
-        self.file_browser = FileBrowserWidget(self)
+        self.file_browser = FileBrowserWidget(self, self.settings_manager)
         self.file_browser.setMinimumWidth(260)
         self.file_browser.request_open.connect(self._open_file_path)
         self.splitter.addWidget(self.file_browser)
@@ -71,6 +74,7 @@ class MainWindow(QMainWindow):
 
         self.terminal = TerminalPane(self)
         self.terminal.setMinimumHeight(160)
+        self.terminal.apply_settings(self.settings_manager.settings.terminal)
         self.content_splitter.addWidget(self.terminal)
 
         self.splitter.addWidget(self.content_splitter)
@@ -105,9 +109,54 @@ class MainWindow(QMainWindow):
         exit_action.triggered.connect(self.close)
 
         edit_menu = menubar.addMenu("&Edit")
+
+        undo_action = edit_menu.addAction("&Undo")
+        undo_action.setShortcut(QKeySequence.StandardKey.Undo)
+        undo_action.triggered.connect(self._undo)
+
+        redo_action = edit_menu.addAction("&Redo")
+        redo_action.setShortcut(QKeySequence.StandardKey.Redo)
+        redo_action.triggered.connect(self._redo)
+
+        edit_menu.addSeparator()
+
+        cut_action = edit_menu.addAction("Cu&t")
+        cut_action.setShortcut(QKeySequence.StandardKey.Cut)
+        cut_action.triggered.connect(self._cut)
+
+        copy_action = edit_menu.addAction("&Copy")
+        copy_action.setShortcut(QKeySequence.StandardKey.Copy)
+        copy_action.triggered.connect(self._copy)
+
+        paste_action = edit_menu.addAction("&Paste")
+        paste_action.setShortcut(QKeySequence.StandardKey.Paste)
+        paste_action.triggered.connect(self._paste)
+
+        edit_menu.addSeparator()
+
         find_action = edit_menu.addAction("&Find / Replace...")
         find_action.setShortcut(QKeySequence.StandardKey.Find)
         find_action.triggered.connect(self._open_find_replace)
+
+        edit_menu.addSeparator()
+
+        indent_action = edit_menu.addAction("&Indent Selection")
+        indent_action.setShortcut("Ctrl+]")
+        indent_action.triggered.connect(self._indent_selection)
+
+        dedent_action = edit_menu.addAction("&Dedent Selection")
+        dedent_action.setShortcut("Ctrl+[")
+        dedent_action.triggered.connect(self._dedent_selection)
+
+        comment_action = edit_menu.addAction("Co&mment Selection")
+        comment_action.setShortcut("Ctrl+/")
+        comment_action.triggered.connect(self._comment_selection)
+
+        edit_menu.addSeparator()
+
+        prefs_action = edit_menu.addAction("&Preferences...")
+        prefs_action.setShortcut("Ctrl+,")
+        prefs_action.triggered.connect(self._show_preferences)
 
         view_menu = menubar.addMenu("&View")
         self.toggle_browser_action = view_menu.addAction("Toggle File Browser")
@@ -134,10 +183,6 @@ class MainWindow(QMainWindow):
         console_position_group.addAction(self.console_right_action)
         self.console_right_action.triggered.connect(lambda checked: self._set_console_position("right") if checked else None)
 
-        help_menu = menubar.addMenu("&Help")
-        about_action = help_menu.addAction("&About")
-        about_action.triggered.connect(self._show_about)
-
         theme_menu = menubar.addMenu("&Theme")
         self.theme_actions = {}
         for theme_name in self.theme_manager.available_themes():
@@ -146,6 +191,10 @@ class MainWindow(QMainWindow):
             action.triggered.connect(lambda checked, name=theme_name: self._set_theme(name))
             self.theme_actions[theme_name] = action
         self._update_theme_menu_selection()
+
+        help_menu = menubar.addMenu("&Help")
+        about_action = help_menu.addAction("&About")
+        about_action.triggered.connect(self._show_about)
 
     def _setup_toolbar(self) -> None:
         toolbar = QToolBar("Main")
@@ -180,6 +229,7 @@ class MainWindow(QMainWindow):
         editor = CodeEditor(self)
         self._apply_theme_to_widget(editor)
         editor.set_language_provider(self.language_provider)
+        editor.apply_settings(self.settings_manager.settings.editor)
         editor.cursorPositionChanged.connect(self._update_cursor_position)
         editor.set_initial_text("# Start typing here\n")
         index = self.tabs.addTab(editor, "untitled.py")
@@ -217,6 +267,7 @@ class MainWindow(QMainWindow):
         editor = CodeEditor(self, file_path=path)
         self._apply_theme_to_widget(editor)
         editor.set_language_provider(self.language_provider)
+        editor.apply_settings(self.settings_manager.settings.editor)
         editor.cursorPositionChanged.connect(self._update_cursor_position)
         try:
             editor.load_from_file(path)
@@ -292,6 +343,59 @@ class MainWindow(QMainWindow):
     def _open_find_replace(self) -> None:
         self.find_replace_dialog.open_for_editor(self._current_editor())
 
+    def _undo(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.undo()
+
+    def _redo(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.redo()
+
+    def _cut(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.cut()
+
+    def _copy(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.copy()
+
+    def _paste(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.paste()
+
+    def _indent_selection(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.indent_selection()
+
+    def _dedent_selection(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.dedent_selection()
+
+    def _comment_selection(self) -> None:
+        editor = self._current_editor()
+        if editor is not None:
+            editor.comment_selection()
+
+    def _show_preferences(self) -> None:
+        dialog = SettingsDialog(self.settings_manager, self.theme_manager, self)
+        dialog.settings_applied.connect(self._apply_settings_to_open_widgets)
+        dialog.exec()
+
+    def _apply_settings_to_open_widgets(self) -> None:
+        editor_settings = self.settings_manager.settings.editor
+        for index in range(self.tabs.count()):
+            widget = self.tabs.widget(index)
+            if isinstance(widget, CodeEditor):
+                widget.apply_settings(editor_settings)
+        self.terminal.apply_settings(self.settings_manager.settings.terminal)
+
     def _show_about(self) -> None:
         about_box = QMessageBox(self)
         about_box.setWindowTitle("About Leopard IDE")
@@ -335,6 +439,7 @@ class MainWindow(QMainWindow):
             widget = self.tabs.widget(index)
             if isinstance(widget, CodeEditor):
                 self._apply_theme_to_widget(widget)
+        self._update_theme_menu_selection()
 
     def _apply_theme_to_widget(self, widget) -> None:
         self.theme_manager.apply_to_widget(widget)
@@ -353,7 +458,7 @@ class MainWindow(QMainWindow):
         if editor is None:
             return
         self.terminal.write(f"\n> Run ({self.language_provider.name})")
-        self.language_provider.run(editor.toPlainText(), self.terminal)
+        self.language_provider.run(editor.toPlainText(), self.terminal, editor.file_path)
         self.status.showMessage(f"Ran with {self.language_provider.name} provider")
 
     def _build_code(self) -> None:

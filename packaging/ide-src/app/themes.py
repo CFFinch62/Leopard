@@ -360,6 +360,9 @@ class ThemeManager(QObject):
     def current_theme(self) -> UITheme:
         return self._current_theme
 
+    def get_theme(self, name: str) -> UITheme:
+        return THEMES.get(name, self._current_theme)
+
     def current_theme_name(self) -> str:
         return self._current_theme_name
 
