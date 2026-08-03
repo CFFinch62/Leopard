@@ -6,11 +6,14 @@ Two Python-exception-based signals carry `break`/`continue` out of a loop body a
 `break`/`continue`/`return` used outside a loop/function are instead caught directly
 via a depth counter and raised as an ordinary LeopardRuntimeError at that point.
 
-Zero GUI dependency by default (Phases 0-3) — `gui_properties`/`gui_builtins` are
-optional plugin points the GUI runtime (Phase 4+, `gui/app_host.py`) fills in so this
+Zero GUI dependency by default (Phases 0-3) — `gui_properties`/`gui_builtins`/`gui_methods`
+are optional plugin points the GUI runtime (Phase 4+, `gui/app_host.py`) fills in so this
 module never has to `import PyQt6` itself. `gui_properties` handles `.property`
 get/set for anything that isn't a plain list (e.g. a QWidget); `gui_builtins` is an
 extra name->callable dict checked before a name is treated as GUI-only-and-unimplemented.
+`gui_methods` (Phase 13) handles `receiver.method(args)` calls for anything that isn't a
+plain list (e.g. a turtle-graphics canvas control) — the same shape as `gui_properties`,
+just for calls instead of property get/set.
 """
 
 from __future__ import annotations
@@ -23,17 +26,16 @@ from . import builtins_files
 from .environment import Environment
 from .errors import LeopardRuntimeError, describe_type
 
-# Reserved words that name GUI-only builtins/turtle commands (Phase 4+ implements
-# these) — calling them from a bare (no-window) script gets a clear "not yet" error
-# rather than a confusing "undefined" one.
+# Reserved words that name GUI-only builtins (Phase 4+ implements these) — calling
+# them from a bare (no-window) script gets a clear "not yet" error rather than a
+# confusing "undefined" one. Turtle commands aren't listed here (Phase 13): they're
+# never bare identifiers anymore, only methods on a declared `graphics` control
+# (`canvas1.go(...)`), so they fall through `_eval_Call`'s `gui_methods` branch instead.
 _GUI_ONLY_NAMES = {
     "notice", "confirm", "ask", "beep",
     "open_file_dialog", "save_file_dialog", "color_dialog", "font_dialog",
     "set_cursor", "close_window", "maximize_window", "minimize_window",
     "play_sound", "stop_sound", "play_music", "stop_music", "pause_music",
-    "up", "down", "home", "go", "goto", "place", "turn", "north", "fill",
-    "pen", "size", "font", "text", "backcolor", "box", "boxfilled",
-    "circle", "circlefilled", "ellipse", "ellipsefilled", "drawbmp",
 }
 
 
@@ -51,12 +53,18 @@ class _ReturnSignal(Exception):
 
 
 class Interpreter:
-    def __init__(self, gui_properties: Any = None, gui_builtins: Optional[dict] = None):
+    def __init__(
+        self,
+        gui_properties: Any = None,
+        gui_builtins: Optional[dict] = None,
+        gui_methods: Any = None,
+    ):
         self.globals = Environment()
         self.functions: dict[str, ast.FunctionDecl] = {}
         self._loop_depth = 0
         self.gui_properties = gui_properties
         self.gui_builtins: dict = gui_builtins or {}
+        self.gui_methods = gui_methods
 
     def run(self, program: ast.Program) -> None:
         if program.window is not None:
@@ -313,6 +321,15 @@ class Interpreter:
                 raise LeopardRuntimeError(expr.line, "'.add()' takes exactly one argument")
             obj.append(self._eval(expr.args[0], env))
             return None
+
+        if isinstance(expr.callee, ast.PropertyAccess):
+            obj = self._eval(expr.callee.obj, env)
+            if self.gui_methods is not None and self.gui_methods.is_gui_object(obj):
+                args = [self._eval(a, env) for a in expr.args]
+                return self.gui_methods.call(obj, expr.callee.name, args, expr.line)
+            raise LeopardRuntimeError(
+                expr.line, f"'.{expr.callee.name}()' needs a GUI control (not available yet)"
+            )
 
         if not isinstance(expr.callee, ast.Identifier):
             raise LeopardRuntimeError(expr.line, "this value is not something that can be called")

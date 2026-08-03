@@ -1,10 +1,13 @@
 """Token stream -> AST. Recursive-descent, precedence climbing for expressions.
 
-Reserved-word keywords that name turtle commands (GRAMMAR.md §10) or builtins (§12) —
-plus `page` (§11) — are valid in expression position exactly like an identifier (e.g.
-`pen "red"`, `page.text`, `str(score)`); see EXPRESSION_KEYWORDS below. A bare identifier
-followed directly by another expression with no operator between them (e.g. `goto 300, 300`,
-`notice "hi"`) is a no-parens "command" call — see _finish_simple_statement.
+Reserved-word keywords that name builtins (GRAMMAR.md §12) are valid in expression
+position exactly like an identifier (e.g. `notice "hi"`, `str(score)`); see
+EXPRESSION_KEYWORDS below. A bare identifier followed directly by another expression
+with no operator between them (e.g. `notice "hi"`) is a no-parens "command" call —
+see _simple_statement. Turtle commands (§10) are deliberately NOT in this set — since
+Phase 13 they're only reachable as `canvasName.command(args)`, a dotted method call on
+a declared `graphics` control, never as a bare statement — `_postfix_expr`'s dot/paren
+handling (below) already parses that generically for any receiver, keyword or not.
 """
 
 from __future__ import annotations
@@ -24,30 +27,7 @@ CONTROL_DECL_TYPES = {
     TokenType.RADIOBUTTON,
     TokenType.CHECKBOX,
     TokenType.GROUPBOX,
-}
-
-_TURTLE_COMMANDS = {
-    TokenType.UP,
-    TokenType.DOWN,
-    TokenType.HOME,
-    TokenType.GO,
-    TokenType.GOTO,
-    TokenType.PLACE,
-    TokenType.TURN,
-    TokenType.NORTH,
-    TokenType.FILL,
-    TokenType.PEN,
-    TokenType.SIZE,
-    TokenType.FONT,
-    TokenType.TEXT,
-    TokenType.BACKCOLOR,
-    TokenType.BOX,
-    TokenType.BOXFILLED,
-    TokenType.CIRCLE,
-    TokenType.CIRCLEFILLED,
-    TokenType.ELLIPSE,
-    TokenType.ELLIPSEFILLED,
-    TokenType.DRAWBMP,
+    TokenType.GRAPHICS,
 }
 
 _BUILTINS = {
@@ -87,14 +67,14 @@ _BUILTINS = {
     TokenType.DOWNLOAD_FILE,
 }
 
-# Reserved words valid in expression position, resolving like a plain identifier
-# (GRAMMAR.md §11: `page` needs no special grammar beyond this). `window` joins them
-# in Phase 4 for the same reason: §12 shows `window.title = "..."` as a property
-# access, which requires `window` to resolve as an identifier referring to the
-# current window, in every window kind (not just plain `window` headers) — GRAMMAR.md
-# doesn't say this explicitly, only implies it via that one example; flagged in its
-# §15 open questions (see IMPLEMENTATION_PLAN.md's Phase 4 decisions-log entry).
-EXPRESSION_KEYWORDS = _TURTLE_COMMANDS | _BUILTINS | {TokenType.PAGE, TokenType.WINDOW}
+# Reserved words valid in expression position, resolving like a plain identifier.
+# `window` is here because §12 shows `window.title = "..."` as a property access,
+# which requires `window` to resolve as an identifier referring to the current window
+# — flagged in GRAMMAR.md's §15 open questions (see IMPLEMENTATION_PLAN.md's Phase 4
+# decisions-log entry). Turtle command words are deliberately excluded (Phase 13):
+# they're only ever meaningful as a method name after a dot (`canvas1.go(...)`), which
+# `_postfix_expr` already handles without consulting this set at all.
+EXPRESSION_KEYWORDS = _BUILTINS | {TokenType.WINDOW}
 
 _EXPRESSION_START_TYPES = {
     TokenType.NUMBER,
@@ -176,19 +156,9 @@ class Parser:
 
     def _parse_window_header_if_present(self) -> ast.WindowDecl | None:
         line = self._peek().line
-        if self._check(TokenType.WINDOW):
-            self._advance()
-            kind = "window"
-        elif self._check(TokenType.TEXT) and self._peek_next().type is TokenType.WINDOW:
-            self._advance()
-            self._advance()
-            kind = "text_window"
-        elif self._check(TokenType.GRAPHICS) and self._peek_next().type is TokenType.WINDOW:
-            self._advance()
-            self._advance()
-            kind = "graphics_window"
-        else:
+        if not self._check(TokenType.WINDOW):
             return None
+        self._advance()
 
         title_tok = self._expect(TokenType.STRING, "expected a quoted window title")
         self._expect(TokenType.COMMA, "expected ',' after window title")
@@ -197,7 +167,7 @@ class Parser:
         height_tok = self._expect(TokenType.NUMBER, "expected a height after window width")
         body = self._parse_block("the window header")
         return ast.WindowDecl(
-            kind=kind, title=title_tok.value, width=width_tok.value, height=height_tok.value,
+            title=title_tok.value, width=width_tok.value, height=height_tok.value,
             body=body, line=line,
         )
 
@@ -411,7 +381,7 @@ class Parser:
         event = _EVENT_KEYWORDS[self._advance().type]
 
         target = None
-        if self._check(TokenType.IDENTIFIER, TokenType.PAGE):
+        if self._check(TokenType.IDENTIFIER):
             target = self._advance().lexeme
 
         body = self._parse_block(f"the 'on {event}' header")

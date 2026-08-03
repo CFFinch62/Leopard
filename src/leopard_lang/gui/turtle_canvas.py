@@ -1,4 +1,4 @@
-"""Turtle graphics canvas + every §10 command (GRAMMAR.md §10, `graphics window`).
+"""Turtle graphics canvas + every §10 command (GRAMMAR.md §10, a `graphics` control).
 
 GRAMMAR.md only says these commands are "carried over unchanged in name and meaning"
 from the original `leopard.bas`, which itself just forwarded each one, verbatim and

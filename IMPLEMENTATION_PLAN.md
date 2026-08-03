@@ -77,28 +77,17 @@ the artificial limits and Windows-only dependencies.
 
 | | |
 |---|---|
-| **Active phase** | Phase 12 — Docs & examples (complete) — **all 13 phases (0–12) done**; project is now past initial commit and into user-driven follow-up work |
-| **Active task** | Both repos' initial commits are in (`LANGUAGES/Leopard` and `IDE_Suite 2/LEOPARD`, each its own root commit). Since then: three documentation passes and three real language changes (`eq`; `list[i] = value`, closing out GRAMMAR.md §15; and a new `print` builtin for bare-script console output — see Section 6's newest entry) — none of this is committed yet. |
-| **Last updated** | 2026-07-31 |
+| **Active phase** | Phase 13 — Unify turtle/text into GUI controls (complete) |
+| **Active task** | None within this phase — `graphics`/`textedit` controls, `gui_methods` dispatch, and the retirement of `text window`/`graphics window`/`page` are implemented; every test, fixture, example, and doc file that used the old syntax is rewritten; `pytest` is green (303 tests); a hand-written composite program (`graphics` + `textedit` + buttons) verified both via `leopard run` and a `leopard build` compile. Nothing is committed yet. |
+| **Last updated** | 2026-08-03 |
 | **Blockers** | None |
-| **Next concrete action** | None within this plan; awaiting the user's direction on when to commit the post-initial-commit changes. This project is now in user-driven testing/bug-fixing/feature-request mode rather than phase-by-phase build-out. |
+| **Next concrete action** | None within this plan; awaiting the user's direction on whether/when to commit Phase 13. |
 
-*Phases 0–12 are all done and verified. Phase 12 added: `IDE_Suite 2/LEOPARD/examples/` (5
-sample programs — `greeter.lep`, `fizzbuzz.lep`, `menus.lep`, `turtle_demo.lep`, `notes.lep`,
-each individually run and verified, not just parsed); `LANGUAGES/Leopard/LANGUAGE_GUIDE.md` (a
-polished, beginner-facing tutorial covering every language area, cross-referencing the example
-files); `LANGUAGES/Leopard/README.md` (new — install/CLI/project-layout overview, previously
-this directory had no top-level README at all); and an updated `IDE_Suite 2/LEOPARD/README.md`
-(Build button, syntax highlighting, and the now-populated `examples/` folder, replacing several
-"still to come" placeholders left over from Phases 9–11). No code changed this phase — pure
-documentation and example content, as scoped. `pytest` remains green (287 tests, unchanged from
-Phase 11 — this phase added no test surface).
-
-**This closes out the plan.** Every phase from 0 through 12 is complete: the language core
-(Phases 0–3), the standalone GUI runtime (Phases 4–8), the IDE built on top of them (Phases
-9–10), the ability to ship a finished program as a standalone executable (Phase 11), and now
-docs/examples that let someone with zero context pick this up unassisted (Phase 12). Nothing
-remains unchecked anywhere in Section 4.*
+*Phases 0–12 were complete and closed out as of 2026-07-31 (see git history / prior entries in
+this table for that snapshot). Phase 13 (2026-08-03) is a user-driven design change layered on
+top: it retires `text window`/`graphics window` as exclusive whole-program modes in favor of two
+ordinary placeable controls (`graphics`, `textedit`), so a single `window` can host any combination
+of graphics, text, and ordinary controls — see Section 6's newest entry for the full rationale.*
 
 *(Whoever picks this up next: overwrite this table, don't append to it. It should always describe
 the present moment, not a history — history belongs in Section 6.)*
@@ -138,8 +127,9 @@ LANGUAGES/Leopard/
       properties.py                  <- .text/.color/.items/... get/set dispatch
       events.py                      <- on click/change/select/close -> Qt signal wiring
       menus.py                       <- menu/item/checkitem/submenu/separator -> QMenuBar
-      turtle_canvas.py               <- graphics window
-      text_page.py                   <- text window's implicit `page`
+      turtle_canvas.py               <- the `graphics` control's TurtleCanvas + every §10 command
+      methods.py                     <- receiver.method(args) dispatch (Phase 13) -> a `graphics`
+                                         control's turtle commands, mirrors properties.py's shape
       dialogs.py                     <- notice/confirm/ask/filedialog/colordialog/fontdialog
       sound.py                       <- play_sound/play_music/etc.
   tests/
@@ -153,8 +143,9 @@ LANGUAGES/Leopard/
 `pip install -e .` from this directory puts a real `leopard` command on PATH — that's the
 Phase 3 Definition of Done: a complete, standalone *procedural* language, no editor, IDE, or GUI
 dependency required. `pip install -e ".[gui]"` adds PyQt6, at which point `leopard run` also
-handles `window`/`text window`/`graphics window` programs — standalone, still no IDE — via
-`gui/app_host.py`. That's the Phase 4-8 Definition of Done: the *whole* language, GUI included,
+handles `window` programs (any mix of controls, including `graphics`/`textedit` — Phase 13
+retired the separate `text window`/`graphics window` program shapes) — standalone, still no IDE —
+via `gui/app_host.py`. That's the Phase 4-8 Definition of Done: the *whole* language, GUI included,
 complete and proven without `IDE_Suite 2/` existing at all.
 
 **2. `IDE_Suite 2/LEOPARD/` — created later (Phase 9, only after the GUI runtime above is
@@ -374,6 +365,11 @@ Goal: GRAMMAR.md §8's full menu support, in all three window types (status #6).
 
 ### Phase 6 — Turtle graphics (graphics window)
 
+*Superseded by Phase 13: `graphics window` is retired — turtle graphics is now a `graphics`
+control placeable inside an ordinary `window`, and its commands are dotted method calls
+(`canvas1.go(100)`) rather than bare statements. This phase's checklist is kept as a historical
+record of the original turtle-canvas/pixel-semantics work, which Phase 13 builds on unchanged.*
+
 - [x] QPainter- or QGraphicsView-based canvas widget with turtle state: position, heading,
       pen up/down, pen color, pen size — `gui/turtle_canvas.py`'s `TurtleCanvas`, drawing
       directly onto a persistent `QPixmap` buffer
@@ -390,6 +386,11 @@ Goal: GRAMMAR.md §8's full menu support, in all three window types (status #6).
 ---
 
 ### Phase 7 — Text window (`page`)
+
+*Superseded by Phase 13: `text window` is retired and `page` is no longer a reserved word — a
+fully-editable text area is now just an ordinary `textedit` control, placeable and nameable like
+any other. This phase's checklist is kept as a historical record; `gui/text_page.py` itself was
+deleted in Phase 13 since the generic `textedit` control factory already does the same job.*
 
 - [x] Full-window QTextEdit bound to the reserved `page` identifier (GRAMMAR.md §11, status #11)
       — `gui/text_page.py`
@@ -521,6 +522,59 @@ IDE, and write a working Leopard program without asking a question.
 
 ---
 
+### Phase 13 — Unify turtle/text into GUI controls
+
+Goal: retire `text window`/`graphics window` as exclusive whole-program window kinds and replace
+them with two ordinary, placeable controls — `graphics` (a turtle canvas) and the already-existing
+`textedit` — so a single `window` can host any mix of controls, menus, and one or more of each,
+enabling composite apps (a paint app's toolbar + canvas, a 2D adventure's scene + narration pane +
+controls) that the old exclusive-kind model couldn't express. User-driven follow-up work, not part
+of the original Phase 0-12 build-out. See Section 6's newest entry for full rationale and the
+turtle-targeting design fork (dotted method calls vs. a trailing `on <name>` clause vs. a stateful
+`use <name>` switch — dotted method calls won, chosen for consistency with the existing
+`control.property = value` style).
+
+- [x] `graphics` added as a declarable control kind (`graphics as name at x, y, w, h`) — reuses the
+      existing `GRAPHICS` token (previously only the `graphics window` header keyword) —
+      `parser.py`'s `CONTROL_DECL_TYPES`, `window_builder.py`'s `_CONTROL_FACTORIES`
+- [x] Turtle commands become dotted method calls on a named `graphics` control
+      (`canvas1.go(100)`) instead of bare statements — required no parser/AST change at all
+      (`Call.callee: Expr` was already general, and `_postfix_expr` already parsed
+      `receiver.name(args)` generically); the real gap was `interpreter.py`'s `_eval_Call`, which
+      gained a `gui_methods` dispatch branch mirroring the existing `gui_properties` one — new
+      `gui/methods.py`'s `MethodDispatcher`, reusing `turtle_canvas.py`'s `build_turtle_builtins`
+      unchanged as the method registry
+- [x] `text window`/`page` retired: `textedit` (already a declarable control since Phase 4) is now
+      the only way to get a fully-editable text area — `page` is no longer a reserved word or an
+      implicit identifier, just a name a program can choose like any other; `gui/text_page.py`
+      deleted (the generic `textedit` factory already does the same job)
+- [x] `WindowDecl.kind` removed from the AST — only one window shape exists now, so the field was
+      dead weight; `app_host.py:run_window`'s `if/elif` on window kind removed entirely
+- [x] `build.py`'s `_GUI_HIDDEN_IMPORTS`: `gui.text_page` removed, `gui.methods` added
+- [x] Tests, `.lep` fixtures, `examples/`, `GRAMMAR.md`, and `LANGUAGE_GUIDE.md` updated to the new
+      syntax; old-syntax regression tests (`page` reserved word, turtle commands unavailable
+      outside a `graphics window`) replaced with tests asserting the new invariants (multiple
+      independent `graphics`/`textedit` controls in one window, bare turtle statements now a
+      syntax error, `.method()` on a non-`graphics` control raises a clean error)
+- [x] New example added — `examples/paint_demo.lep`: a `graphics` control, a `textedit` control,
+      and buttons together in one window, the direct payoff of this phase — wired into
+      `examples/README.md` as lesson 14 (Part 3), pushing `sound_demo.lep`/`fizzbuzz.lep`/
+      `todo_capstone.lep` to 15/16/17
+- [x] **[manual]** a hand-written program combining a `graphics` control, a `textedit` control, and
+      ordinary buttons in one window runs correctly via `leopard run` — direct proof of the
+      motivating paint-app/adventure-game use case: verified both by driving the real
+      `run_window()` (clicking the actual button widgets, screenshotting the actual rendered
+      window — a red circle and blue square drawn on the canvas, the textedit log showing "Drew a
+      circle."/"Drew a square.") and by a real `leopard run` invocation via the CLI
+- [x] **[manual]** that same program compiles via `leopard build` — confirms the
+      `_GUI_HIDDEN_IMPORTS` edit didn't break PyInstaller packaging: compiled cleanly, and the
+      resulting standalone executable launched with no errors
+
+**Definition of Done:** `pytest` green; a composite window (graphics + textedit + ordinary
+controls, coexisting) runs correctly standalone and survives a `leopard build` compile.
+
+---
+
 ## 5. Testing strategy
 
 - **Phases 0–3** are fully headless — plain `pytest`, runnable in any sandbox, by any agent,
@@ -547,6 +601,56 @@ IDE, and write a working Leopard program without asking a question.
 
 *(Append-only, newest first. Anything that isn't already captured in GRAMMAR.md's status list but
 affects implementation goes here — file layout calls, library choices, judgment calls made mid-phase.)*
+
+- **2026-08-03** — Phase 13: retired `text window`/`graphics window` as exclusive whole-program
+  window kinds in favor of two ordinary placeable controls, `graphics` and `textedit`, so a single
+  `window` can host any mix of graphics, text, and ordinary controls at once (including more than
+  one `graphics`/`textedit`). Motivation: the user wants to build significantly more ambitious
+  programs than the original 2003 Liberty-BASIC-derived design supported — e.g. a paint app
+  (toolbar + docked canvas) or a small 2D adventure game (scene canvas + narration pane + game
+  controls, all in one window) — which the old exclusive-kind model couldn't express at all. This
+  is an intentional, user-approved departure from the original Leopard/Liberty BASIC design, in
+  service of the language's stated long-term identity as "a beginner's visual Liberty BASIC using
+  Python-style structure."
+
+  Key design fork, resolved by asking the user directly: with more than one `graphics` control on
+  screen, something has to say which canvas a command like `go 100` draws on. Three options were
+  weighed — (a) dotted method calls (`canvas1.go(100)`), extending the same dot-syntax already
+  used for properties; (b) bare verbs plus a trailing target clause (`go 100 on canvas1`); (c) a
+  single "active" canvas switched with a stateful `use canvas1` statement. The user chose (a) for
+  consistency with the existing `control.property = value` style and because it generalizes to any
+  future object method, accepting that it's the most breaking change to existing turtle example
+  programs of the three options.
+
+  Implementation turned out smaller than expected: `ast.Call.callee` was already a general `Expr`
+  (not restricted to `Identifier`), and `parser.py`'s `_postfix_expr` already parsed
+  `receiver.name(args)` generically for any receiver — exactly the mechanism already used for the
+  `.add()` list-method special case in `interpreter.py`'s `_eval_Call`. So `canvas1.go(100)` needed
+  zero grammar/parser changes; the only real gap was a new `gui_methods` dispatch branch in
+  `_eval_Call`, mirroring the existing `gui_properties` branch (`_eval_PropertyAccess`) — see new
+  `gui/methods.py`'s `MethodDispatcher`, which reuses `turtle_canvas.py`'s `build_turtle_builtins`
+  unchanged as its method registry. `TurtleCanvas` was already a self-contained `QWidget` with no
+  "sole child of the window" assumptions baked in, so making it a `_CONTROL_FACTORIES` entry
+  (`window_builder.py`) needed only one change: `build_control` now evaluates a control's `x, y, w,
+  h` *before* calling its factory (previously factory-then-geometry), since `TurtleCanvas.__init__`
+  needs its final width/height to size its pixmap and turtle home position, unlike every other
+  control which can be resized after construction. `text_page.py` was deleted outright — the
+  already-existing generic `"textedit"` control factory does exactly the same job as its
+  special-cased `create_text_page`, once `page` stops being a magic reserved name.
+
+  `page` is no longer a reserved word (removed `TokenType.PAGE`; it now lexes as an ordinary
+  `IDENTIFIER`) — a text area's name is just whatever a program's author chooses, same as any
+  other control. Turtle-graphics command words (`go`, `turn`, `pen`, etc.) stay reserved (still not
+  usable as a variable/control name) but were removed from `EXPRESSION_KEYWORDS`, so they're never
+  legal as bare, receiver-less statements anymore — only as a method name after a dot on a
+  `graphics` control; this was a deliberate, narrower choice than also demoting them to plain
+  identifiers in the lexer, since nothing required that larger change.
+
+  Explicitly out of scope for this phase: mouse-driven canvas interaction (click/drag to draw).
+  `TurtleCanvas` has no mouse-event handling at all today (no `pyqtSignal`s, no `mousePressEvent`
+  override) — wiring that up is a distinct, sizable feature from "make the canvas a placeable
+  control," left for a future phase if the user wants a true click-to-draw paint app rather than
+  one driven entirely by button clicks calling canvas methods.
 
 - **2026-07-31** — Added a real `print value` builtin, closing the console-output gap that
   §15's resolved question #2 had only papered over by rewording the §5 example (see the entry

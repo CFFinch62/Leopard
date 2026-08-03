@@ -1,2 +1,3 @@
-text window "Log Viewer", 600, 400:
+window "Log Viewer", 600, 400:
+    textedit as page at 0, 0, 600, 400
     page.text = "hi"

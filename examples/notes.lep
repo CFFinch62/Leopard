@@ -1,8 +1,11 @@
-# Notes — a fully editable text window bound to the reserved `page` identifier.
-# Type in the page; closing the window saves what you wrote to notes.txt.
+# Notes — a fully editable text area, declared as an ordinary `textedit` control
+# (Phase 13: no more separate `text window` mode, and `page` is just a name we
+# chose — it isn't reserved). Type in the page; closing the window saves what
+# you wrote to notes.txt.
 
-text window "Notes", 600, 400:
+window "Notes", 600, 400:
 
+    textedit as page at 0, 20, 600, 380
     label "" as wordCountLabel at 0, 0, 200, 20
 
     page.text = "Start typing..."

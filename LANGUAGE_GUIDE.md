@@ -282,7 +282,7 @@ on click btnGreet:
 | Event | Fires on |
 |---|---|
 | `on click` | a button, `bmpbutton`, or menu item |
-| `on change` | a checkbox, radiobutton, combobox, checkitem, or the text window's `page` |
+| `on change` | a checkbox, radiobutton, combobox, checkitem, or a `textedit` control |
 | `on select` | a listbox or combobox selection changing |
 | `on close` | the window closing (no control name needed) |
 
@@ -294,7 +294,8 @@ what that means in practice and a short example.
 
 ## Menus
 
-Menus work in every window type, with full submenu and checkable-item support:
+Menus work alongside any mix of controls in a window, with full submenu and
+checkable-item support:
 
 ```
 window "Editor", 500, 400:
@@ -330,55 +331,60 @@ for the complete, runnable version of this program.
 
 ## Turtle graphics
 
-A `graphics window` gives you a turtle: a cursor with a position, a heading, and a
-pen you can raise or lower.
+A `graphics` control gives you a turtle: a cursor with a position, a heading, and a
+pen you can raise or lower. Place one like any other control, give it a name, and
+call its commands as dotted methods on that name — which also means you can place
+more than one, each with its own independent turtle:
 
 ```
-graphics window "Turtle Demo", 640, 480:
-    pen "red"
-    size 3
-    down
-    go 100
-    turn 90
-    go 100
-    up
-    goto 300, 300
-    fill "blue"
-    circlefilled 40
+window "Turtle Demo", 640, 480:
+    graphics as canvas1 at 0, 0, 640, 480
+    canvas1.pen("red")
+    canvas1.size(3)
+    canvas1.down()
+    canvas1.go(100)
+    canvas1.turn(90)
+    canvas1.go(100)
+    canvas1.up()
+    canvas1.goto(300, 300)
+    canvas1.fill("blue")
+    canvas1.circlefilled(40)
 ```
 
 | Command | Does |
 |---|---|
-| `up` / `down` | raise / lower the pen (raised = moving doesn't draw) |
-| `home` | jump to the center, facing north |
-| `go n` | move forward `n` pixels in the current direction |
-| `goto x, y` | move to an absolute position (draws if the pen is down) |
-| `place x, y` | move to an absolute position *without* drawing, pen state or not |
-| `turn n` | rotate `n` degrees clockwise |
-| `north` | face north without moving |
-| `pen "color"` | set the line color |
-| `fill "color"` | set the fill color used by the `...filled` shapes |
-| `size n` | set the line thickness |
-| `font "name"` | set the font used by `text` |
-| `text "string"` | draw text at the current position |
-| `backcolor "color"` | set the canvas background color |
-| `box w, h` / `boxfilled w, h` | rectangle from the current position |
-| `circle r` / `circlefilled r` | circle centered on the current position |
-| `ellipse w, h` / `ellipsefilled w, h` | ellipse centered on the current position |
-| `drawbmp "path", x, y` | draw an image file at a position |
+| `.up()` / `.down()` | raise / lower the pen (raised = moving doesn't draw) |
+| `.home()` | jump to the center, facing north |
+| `.go(n)` | move forward `n` pixels in the current direction |
+| `.goto(x, y)` | move to an absolute position (draws if the pen is down) |
+| `.place(x, y)` | move to an absolute position *without* drawing, pen state or not |
+| `.turn(n)` | rotate `n` degrees clockwise |
+| `.north()` | face north without moving |
+| `.pen("color")` | set the line color |
+| `.fill("color")` | set the fill color used by the `...filled` shapes |
+| `.size(n)` | set the line thickness |
+| `.font("name")` | set the font used by `.text()` |
+| `.text("string")` | draw text at the current position |
+| `.backcolor("color")` | set the canvas background color |
+| `.box(w, h)` / `.boxfilled(w, h)` | rectangle from the current position |
+| `.circle(r)` / `.circlefilled(r)` | circle centered on the current position |
+| `.ellipse(w, h)` / `.ellipsefilled(w, h)` | ellipse centered on the current position |
+| `.drawbmp("path", x, y)` | draw an image file at a position |
 
 See [`turtle_demo.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/turtle_demo.lep)
 to try this yourself.
 
 ---
 
-## Text windows
+## Text areas
 
-A `text window` treats its whole content area as one big, fully editable text box,
-bound to the reserved name `page`:
+A `textedit` control treats its whole area as one big, fully editable text box —
+place one like any other control and give it whatever name you like:
 
 ```
-text window "Notes", 600, 400:
+window "Notes", 600, 400:
+
+    textedit as page at 0, 20, 600, 380
 
     page.text = "Start typing..."
 
@@ -389,9 +395,10 @@ text window "Notes", 600, 400:
         write_file("notes.txt", page.text)
 ```
 
-`page` works exactly like any other control — `.text` to read or write its
-contents, `on change`/`on close` to react to it — it's just always there,
-filling the window, instead of something you declare yourself. See
+`page` here is just a name we picked, not a reserved word — a `textedit` works
+exactly like any other control: `.text` to read or write its contents, `on
+change`/`on close` to react to it. Nothing stops you from declaring more than one
+in the same window, each independent. See
 [`notes.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/notes.lep)
 for the full version.
 

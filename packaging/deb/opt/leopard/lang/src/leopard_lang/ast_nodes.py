@@ -25,7 +25,6 @@ class Expr:
 
 @dataclass
 class WindowDecl:
-    kind: str  # "window" | "text_window" | "graphics_window"
     title: str
     width: object
     height: object
@@ -46,7 +45,7 @@ class Program:
 
 @dataclass
 class ControlDecl(Stmt):
-    kind: str  # e.g. "button", "textbox", ...
+    kind: str  # e.g. "button", "textbox", "graphics", ...
     caption: Optional[str]
     name: str
     x: Expr

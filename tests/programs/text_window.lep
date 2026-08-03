@@ -1,5 +1,6 @@
-text window "Notes", 600, 400:
+window "Notes", 600, 400:
 
+    textedit as page at 0, 0, 600, 400
     page.text = "Start typing..."
 
     on change page:

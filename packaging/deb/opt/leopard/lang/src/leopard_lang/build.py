@@ -91,7 +91,7 @@ _GUI_HIDDEN_IMPORTS = [
     "leopard_lang.gui.events",
     "leopard_lang.gui.menus",
     "leopard_lang.gui.turtle_canvas",
-    "leopard_lang.gui.text_page",
+    "leopard_lang.gui.methods",
     "leopard_lang.gui.dialogs",
     "leopard_lang.gui.sound",
 ]

@@ -97,9 +97,9 @@ def test_logical_word_operators():
         ("return", TokenType.RETURN),
         ("menu", TokenType.MENU),
         ("checkitem", TokenType.CHECKITEM),
-        ("page", TokenType.PAGE),
         ("textbox", TokenType.TEXTBOX),
         ("button", TokenType.BUTTON),
+        ("graphics", TokenType.GRAPHICS),
         ("goto", TokenType.GOTO),
         ("circlefilled", TokenType.CIRCLEFILLED),
         ("notice", TokenType.NOTICE),
@@ -108,6 +108,12 @@ def test_logical_word_operators():
 )
 def test_reserved_words(word, expected):
     assert token_types(word) == [expected, TokenType.NEWLINE, TokenType.EOF]
+
+
+def test_page_is_no_longer_reserved():
+    # Phase 13: `page` lost its special implicit-textedit meaning along with
+    # `text window` itself, so it's now an ordinary identifier like any other name.
+    assert token_types("page") == [TokenType.IDENTIFIER, TokenType.NEWLINE, TokenType.EOF]
 
 
 def test_newline_and_eof():

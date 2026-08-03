@@ -1,6 +1,7 @@
 """`menu`/`item`/`checkitem`/`submenu`/`separator` -> QMenuBar/QMenu/QAction tree
-(GRAMMAR.md §8). Works the same regardless of window kind (`window`, `text window`,
-or `graphics window`) — the caller just passes whatever top-level container it has.
+(GRAMMAR.md §8). Agnostic to what else is in the window — the caller just passes
+whatever top-level container it has, whether or not it also holds `graphics`/
+`textedit` controls alongside ordinary buttons and labels.
 
 Every `QMenu` is constructed with an explicit Qt parent (the menubar, or the parent
 menu for a submenu) — without one, Qt's C++ side doesn't keep the Python wrapper

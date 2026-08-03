@@ -1,2 +1,3 @@
-graphics window "Turtle Demo", 640, 480:
-    pen "red"
+window "Turtle Demo", 640, 480:
+    graphics as canvas1 at 0, 0, 640, 480
+    canvas1.pen("red")

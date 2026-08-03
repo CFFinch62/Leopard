@@ -28,6 +28,7 @@ from ..errors import LeopardRuntimeError, describe_type
 from ..interpreter import Interpreter
 from . import events as gui_events
 from . import menus as gui_menus
+from .turtle_canvas import TurtleCanvas
 
 
 class LeopardWindow(QWidget):
@@ -42,24 +43,29 @@ class LeopardWindow(QWidget):
         event.accept()
 
 
-def _make_bmpbutton(caption: str | None) -> QPushButton:
+def _make_bmpbutton(caption: str | None, w: int, h: int) -> QPushButton:
     button = QPushButton()
     if caption:
         button.setIcon(QIcon(caption))
     return button
 
 
+# Every factory takes (caption, w, h) uniformly, even though only "graphics" needs
+# w/h — a TurtleCanvas sizes its drawing surface and turtle home position from its
+# constructor args (turtle_canvas.py), so it must be built at its final size rather
+# than resized afterward the way every other control's QWidget can be.
 _CONTROL_FACTORIES = {
-    "textbox": lambda caption: QLineEdit(),
-    "textedit": lambda caption: QTextEdit(),
-    "label": lambda caption: QLabel(caption or ""),
-    "button": lambda caption: QPushButton(caption or ""),
+    "textbox": lambda caption, w, h: QLineEdit(),
+    "textedit": lambda caption, w, h: QTextEdit(),
+    "label": lambda caption, w, h: QLabel(caption or ""),
+    "button": lambda caption, w, h: QPushButton(caption or ""),
     "bmpbutton": _make_bmpbutton,
-    "listbox": lambda caption: QListWidget(),
-    "combobox": lambda caption: QComboBox(),
-    "radiobutton": lambda caption: QRadioButton(caption or ""),
-    "checkbox": lambda caption: QCheckBox(caption or ""),
-    "groupbox": lambda caption: QGroupBox(caption or ""),
+    "listbox": lambda caption, w, h: QListWidget(),
+    "combobox": lambda caption, w, h: QComboBox(),
+    "radiobutton": lambda caption, w, h: QRadioButton(caption or ""),
+    "checkbox": lambda caption, w, h: QCheckBox(caption or ""),
+    "groupbox": lambda caption, w, h: QGroupBox(caption or ""),
+    "graphics": lambda caption, w, h: TurtleCanvas(int(w), int(h)),
 }
 
 
@@ -74,13 +80,14 @@ def build_control(decl: ast.ControlDecl, interpreter: Interpreter, env: Environm
     factory = _CONTROL_FACTORIES.get(decl.kind)
     if factory is None:
         raise LeopardRuntimeError(decl.line, f"unknown control kind '{decl.kind}'")
-    widget = factory(decl.caption)
-    widget.setParent(parent)
 
     x = _eval_geometry_number(interpreter, decl.x, env, decl.line, "a control's x position")
     y = _eval_geometry_number(interpreter, decl.y, env, decl.line, "a control's y position")
     w = _eval_geometry_number(interpreter, decl.w, env, decl.line, "a control's width")
     h = _eval_geometry_number(interpreter, decl.h, env, decl.line, "a control's height")
+
+    widget = factory(decl.caption, w, h)
+    widget.setParent(parent)
     widget.setGeometry(int(x), int(y), int(w), int(h))
     widget.show()
 

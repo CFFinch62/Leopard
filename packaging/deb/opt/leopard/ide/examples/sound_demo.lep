@@ -24,7 +24,7 @@ window "Sound Demo", 420, 220:
         stop_sound()
 
     on click playMusicButton:
-        play_music("assets/chime.wav")
+        play_music("assets/sleepy-giants.mp3")
 
     on click pauseMusicButton:
         pause_music()

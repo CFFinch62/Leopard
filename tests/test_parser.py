@@ -44,29 +44,28 @@ def test_list_literal_and_index():
 
 
 def test_bare_command_call_no_parens():
-    prog = parse_src('pen "red"\n')
+    prog = parse_src('notice "hi"\n')
     (stmt,) = prog.body
     assert isinstance(stmt, ast.ExprStatement)
     assert isinstance(stmt.expr, ast.Call)
-    assert stmt.expr.callee == ast.Identifier("pen", 1)
-    assert stmt.expr.args == [ast.Literal("red", 1)]
+    assert stmt.expr.callee == ast.Identifier("notice", 1)
+    assert stmt.expr.args == [ast.Literal("hi", 1)]
 
 
 def test_bare_command_multiple_args():
-    prog = parse_src("goto 300, 300\n")
+    prog = parse_src('write_file "a.txt", "hi"\n')
     (stmt,) = prog.body
-    assert stmt.expr.callee.name == "goto"
-    assert stmt.expr.args == [ast.Literal(300, 1), ast.Literal(300, 1)]
+    assert stmt.expr.callee.name == "write_file"
+    assert stmt.expr.args == [ast.Literal("a.txt", 1), ast.Literal("hi", 1)]
 
 
 def test_zero_arg_bare_command():
-    # A bare name as an entire statement is a zero-arg call (GRAMMAR.md §10: `up`,
-    # `down`, `home`, `north` all take no arguments) — fixed in Phase 6 after this
-    # originally parsed as a bare Identifier, which the interpreter can't call.
-    prog = parse_src("up\n")
+    # A bare name as an entire statement is a zero-arg call — fixed in Phase 6 after
+    # this originally parsed as a bare Identifier, which the interpreter can't call.
+    prog = parse_src("beep\n")
     (stmt,) = prog.body
     assert isinstance(stmt, ast.ExprStatement)
-    assert stmt.expr == ast.Call(callee=ast.Identifier("up", 1), args=[], line=1)
+    assert stmt.expr == ast.Call(callee=ast.Identifier("beep", 1), args=[], line=1)
 
 
 def test_parenthesized_call():
@@ -347,19 +346,53 @@ def test_bare_script_has_no_window():
     assert prog.window is None
 
 
+def test_window_header():
+    prog = parse_src('window "My App", 500, 400:\n    notice "hi"\n')
+    assert prog.window is not None
+    assert prog.window.title == "My App"
+    assert (prog.window.width, prog.window.height) == (500, 400)
+
+
 @pytest.mark.parametrize(
-    "header, kind",
+    "header",
     [
-        ('window "My App", 500, 400:', "window"),
-        ('text window "Log Viewer", 600, 400:', "text_window"),
-        ('graphics window "Turtle Demo", 640, 480:', "graphics_window"),
+        'text window "Log Viewer", 600, 400:',
+        'graphics window "Turtle Demo", 640, 480:',
     ],
 )
-def test_window_header_kinds(header, kind):
-    prog = parse_src(f'{header}\n    notice "hi"\n')
-    assert prog.window is not None
-    assert prog.window.kind == kind
-    assert prog.window.title in ("My App", "Log Viewer", "Turtle Demo")
+def test_text_and_graphics_window_headers_are_retired(header):
+    # Phase 13: `text window`/`graphics window` are gone — a `textedit`/`graphics`
+    # control declared inside an ordinary `window` replaces them (see below).
+    with pytest.raises(LeopardSyntaxError):
+        parse_src(f'{header}\n    notice "hi"\n')
+
+
+def test_graphics_control_decl():
+    prog = parse_src("graphics as canvas1 at 0, 0, 300, 300\n")
+    (ctrl,) = prog.body
+    assert isinstance(ctrl, ast.ControlDecl)
+    assert ctrl.kind == "graphics"
+    assert ctrl.caption is None
+    assert ctrl.name == "canvas1"
+    assert ctrl.w == ast.Literal(300, 1)
+    assert ctrl.h == ast.Literal(300, 1)
+
+
+def test_turtle_command_is_a_dotted_method_call():
+    prog = parse_src("canvas1.go(100)\n")
+    (stmt,) = prog.body
+    call = stmt.expr
+    assert isinstance(call, ast.Call)
+    assert isinstance(call.callee, ast.PropertyAccess)
+    assert call.callee.name == "go"
+    assert call.callee.obj == ast.Identifier("canvas1", 1)
+    assert call.args == [ast.Literal(100, 1)]
+
+
+def test_bare_turtle_command_without_receiver_is_a_syntax_error():
+    # Phase 13: turtle commands are no longer valid as bare, receiver-less statements.
+    with pytest.raises(LeopardSyntaxError):
+        parse_src("go 100\n")
 
 
 # ---------------------------------------------------------------------------

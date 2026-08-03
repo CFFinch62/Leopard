@@ -83,7 +83,6 @@ class TokenType(enum.Enum):
     CHANGE = "change"
     SELECT = "select"
     CLOSE = "close"
-    PAGE = "page"
 
     # Control declaration keywords (GRAMMAR.md §7)
     TEXTBOX = "textbox"

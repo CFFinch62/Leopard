@@ -18,7 +18,10 @@ def qapp():
 
 
 def build(qapp, body: str, width=640, height=480):
-    source = f'graphics window "T", {width}, {height}:\n{body}'
+    source = (
+        f'window "T", {width}, {height}:\n'
+        f'    graphics as canvas1 at 0, 0, {width}, {height}\n{body}'
+    )
     program = parse(tokenize(source))
     window = run_window(program, existing_app=qapp)
     return window, window.findChild(TurtleCanvas)
@@ -34,7 +37,7 @@ def pixel(canvas: TurtleCanvas, x: int, y: int) -> str:
 
 
 def test_initial_state_is_centered_facing_north_pen_up(qapp):
-    _window, canvas = build(qapp, "    up\n", width=640, height=480)
+    _window, canvas = build(qapp, "    canvas1.up()\n", width=640, height=480)
     assert (canvas.x, canvas.y) == (320, 240)
     assert canvas.heading == 0.0
     assert canvas.pen_is_down is False
@@ -46,58 +49,57 @@ def test_initial_state_is_centered_facing_north_pen_up(qapp):
 
 
 def test_down_then_up(qapp):
-    _window, canvas = build(qapp, "    down\n    up\n")
+    _window, canvas = build(qapp, "    canvas1.down()\n    canvas1.up()\n")
     # down sets True, then up sets False again — confirms both actually run
-    # (a regression test for the zero-arg bare-command parser bug)
     assert canvas.pen_is_down is False
 
 
 def test_go_moves_north_by_default_heading(qapp):
-    _window, canvas = build(qapp, "    down\n    go 100\n")
+    _window, canvas = build(qapp, "    canvas1.down()\n    canvas1.go(100)\n")
     assert canvas.x == pytest.approx(320)
     assert canvas.y == pytest.approx(140)
     assert pixel(canvas, 320, 200) == "#000000"  # default black pen, drawn
 
 
 def test_go_does_not_draw_with_pen_up(qapp):
-    _window, canvas = build(qapp, "    go 100\n")
+    _window, canvas = build(qapp, "    canvas1.go(100)\n")
     assert pixel(canvas, 320, 200) == "#ffffff"
 
 
 def test_turn_changes_heading_and_go_direction(qapp):
-    _window, canvas = build(qapp, "    turn 90\n    down\n    go 100\n")
+    _window, canvas = build(qapp, "    canvas1.turn(90)\n    canvas1.down()\n    canvas1.go(100)\n")
     assert canvas.heading == 90.0
     assert canvas.x == pytest.approx(420)
     assert canvas.y == pytest.approx(240)
 
 
 def test_turn_wraps_at_360(qapp):
-    _window, canvas = build(qapp, "    turn 350\n    turn 20\n")
+    _window, canvas = build(qapp, "    canvas1.turn(350)\n    canvas1.turn(20)\n")
     assert canvas.heading == pytest.approx(10.0)
 
 
 def test_goto_moves_and_draws_when_pen_down(qapp):
-    _window, canvas = build(qapp, "    down\n    goto 100, 100\n")
+    _window, canvas = build(qapp, "    canvas1.down()\n    canvas1.goto(100, 100)\n")
     assert (canvas.x, canvas.y) == (100, 100)
     # on the line from (320,240) to (100,100); +/- a couple px for rasterization
     assert any(pixel(canvas, 200, y) == "#000000" for y in range(160, 167))
 
 
 def test_place_moves_without_drawing_even_with_pen_down(qapp):
-    _window, canvas = build(qapp, "    down\n    place 100, 100\n")
+    _window, canvas = build(qapp, "    canvas1.down()\n    canvas1.place(100, 100)\n")
     assert (canvas.x, canvas.y) == (100, 100)
     # a straight line from (320,240) to (100,100) would cross roughly (210, 170)
     assert pixel(canvas, 210, 170) == "#ffffff"
 
 
 def test_home_resets_position_and_heading(qapp):
-    _window, canvas = build(qapp, "    turn 45\n    goto 10, 10\n    home\n")
+    _window, canvas = build(qapp, "    canvas1.turn(45)\n    canvas1.goto(10, 10)\n    canvas1.home()\n")
     assert (canvas.x, canvas.y) == (320, 240)
     assert canvas.heading == 0.0
 
 
 def test_north_resets_heading_without_moving(qapp):
-    _window, canvas = build(qapp, "    turn 45\n    goto 10, 10\n    north\n")
+    _window, canvas = build(qapp, "    canvas1.turn(45)\n    canvas1.goto(10, 10)\n    canvas1.north()\n")
     assert (canvas.x, canvas.y) == (10, 10)
     assert canvas.heading == 0.0
 
@@ -108,29 +110,29 @@ def test_north_resets_heading_without_moving(qapp):
 
 
 def test_pen_sets_line_color(qapp):
-    _window, canvas = build(qapp, '    pen "blue"\n    down\n    go 50\n')
+    _window, canvas = build(qapp, '    canvas1.pen("blue")\n    canvas1.down()\n    canvas1.go(50)\n')
     assert canvas.pen_color.name() == "#0000ff"
     assert pixel(canvas, 320, 220) == "#0000ff"
 
 
 def test_fill_sets_shape_fill_color(qapp):
-    _window, canvas = build(qapp, '    fill "green"\n    circlefilled 20\n')
+    _window, canvas = build(qapp, '    canvas1.fill("green")\n    canvas1.circlefilled(20)\n')
     assert canvas.fill_color.name() == "#008000"
     assert pixel(canvas, 320, 240) == "#008000"
 
 
 def test_invalid_color_name_is_clear_error(qapp):
     with pytest.raises(LeopardRuntimeError, match="not a recognized color"):
-        build(qapp, '    pen "not-a-real-color"\n')
+        build(qapp, '    canvas1.pen("not-a-real-color")\n')
 
 
 def test_size_sets_pen_width(qapp):
-    _window, canvas = build(qapp, "    size 5\n")
+    _window, canvas = build(qapp, "    canvas1.size(5)\n")
     assert canvas.pen_size == 5
 
 
 def test_backcolor_fills_background(qapp):
-    _window, canvas = build(qapp, '    backcolor "yellow"\n')
+    _window, canvas = build(qapp, '    canvas1.backcolor("yellow")\n')
     assert pixel(canvas, 5, 5) == "#ffff00"
 
 
@@ -140,34 +142,34 @@ def test_backcolor_fills_background(qapp):
 
 
 def test_circle_is_outline_only(qapp):
-    _window, canvas = build(qapp, "    circle 30\n")
+    _window, canvas = build(qapp, "    canvas1.circle(30)\n")
     assert pixel(canvas, 320, 240) == "#ffffff"  # center untouched
     assert pixel(canvas, 320, 210) == "#000000"  # top edge of the circle
 
 
 def test_circlefilled_fills_center(qapp):
-    _window, canvas = build(qapp, "    circlefilled 30\n")
+    _window, canvas = build(qapp, "    canvas1.circlefilled(30)\n")
     assert pixel(canvas, 320, 240) == "#000000"
 
 
 def test_box_is_outline_only(qapp):
-    _window, canvas = build(qapp, "    box 60, 40\n")
+    _window, canvas = build(qapp, "    canvas1.box(60, 40)\n")
     assert pixel(canvas, 350, 260) == "#ffffff"  # interior untouched
     assert pixel(canvas, 320, 240) == "#000000"  # top-left corner is on the outline
 
 
 def test_boxfilled_fills_interior(qapp):
-    _window, canvas = build(qapp, "    boxfilled 60, 40\n")
+    _window, canvas = build(qapp, "    canvas1.boxfilled(60, 40)\n")
     assert pixel(canvas, 350, 260) == "#000000"
 
 
 def test_ellipse_and_ellipsefilled(qapp):
-    _window, canvas = build(qapp, "    ellipsefilled 80, 40\n")
+    _window, canvas = build(qapp, "    canvas1.ellipsefilled(80, 40)\n")
     assert pixel(canvas, 320, 240) == "#000000"
 
 
 def test_text_draws_something(qapp):
-    _window, canvas = build(qapp, '    text "Hi"\n')
+    _window, canvas = build(qapp, '    canvas1.text("Hi")\n')
     img = canvas._pixmap.toImage()
     box = img.copy(300, 220, 60, 30)
     assert any(
@@ -179,18 +181,59 @@ def test_text_draws_something(qapp):
 
 def test_drawbmp_missing_file_is_clear_error(qapp):
     with pytest.raises(LeopardRuntimeError, match="could not be loaded"):
-        build(qapp, '    drawbmp "/nonexistent/path/x.bmp", 0, 0\n')
+        build(qapp, '    canvas1.drawbmp("/nonexistent/path/x.bmp", 0, 0)\n')
 
 
 # ---------------------------------------------------------------------------
-# Turtle commands only exist in a graphics window
+# Turtle methods only exist on a `graphics` control
 # ---------------------------------------------------------------------------
 
 
-def test_turtle_command_unavailable_in_plain_window(qapp):
-    program = parse(tokenize('window "W", 100, 100:\n    pen "red"\n'))
-    with pytest.raises(LeopardRuntimeError, match="needs a window"):
+def test_turtle_method_unavailable_on_non_graphics_control(qapp):
+    program = parse(tokenize(
+        'window "W", 100, 100:\n'
+        '    button "Go" as mybutton at 0, 0, 50, 20\n'
+        '    mybutton.pen("red")\n'
+    ))
+    with pytest.raises(LeopardRuntimeError, match="needs a GUI control"):
         run_window(program, existing_app=qapp)
+
+
+def test_bare_turtle_command_without_receiver_is_a_syntax_error(qapp):
+    from leopard_lang.errors import LeopardSyntaxError
+
+    with pytest.raises(LeopardSyntaxError):
+        parse(tokenize('window "W", 100, 100:\n    graphics as canvas1 at 0, 0, 100, 100\n    pen "red"\n'))
+
+
+# ---------------------------------------------------------------------------
+# Multiple named `graphics` controls have independent turtle state
+# ---------------------------------------------------------------------------
+
+
+def test_two_graphics_controls_have_independent_turtle_state(qapp):
+    source = (
+        'window "W", 300, 150:\n'
+        "    graphics as canvas1 at 0, 0, 150, 150\n"
+        "    graphics as canvas2 at 150, 0, 150, 150\n"
+        "    canvas1.turn(90)\n"
+        "    canvas1.down()\n"
+        "    canvas1.go(50)\n"
+        "    canvas2.down()\n"
+        "    canvas2.go(50)\n"
+    )
+    program = parse(tokenize(source))
+    window = run_window(program, existing_app=qapp)
+    canvases = window.findChildren(TurtleCanvas)
+    assert len(canvases) == 2
+    canvas1 = next(c for c in canvases if c.pos().x() == 0)
+    canvas2 = next(c for c in canvases if c.pos().x() == 150)
+
+    assert canvas1.heading == 90.0
+    assert (canvas1.x, canvas1.y) == pytest.approx((125, 75))
+
+    assert canvas2.heading == 0.0
+    assert (canvas2.x, canvas2.y) == pytest.approx((75, 25))
 
 
 # ---------------------------------------------------------------------------

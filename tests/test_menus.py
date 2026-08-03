@@ -159,21 +159,20 @@ def test_item_on_click_can_close_window(qapp):
 
 
 # ---------------------------------------------------------------------------
-# Menus attach the same way in all three window kinds (GRAMMAR.md §8, Phase 5's
-# Definition of Done)
+# A menu bar coexists with `graphics`/`textedit` controls in the same window
+# (Phase 13: there's only one window kind left, so this is the interesting case
+# that replaces the old "menus attach in every window kind" parametrization)
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize(
-    "header",
-    [
-        'window "W", 300, 300:',
-        'text window "W", 300, 300:',
-        'graphics window "W", 300, 300:',
-    ],
-)
-def test_menu_attaches_in_every_window_kind(qapp, header):
-    source = f'{header}\n    menu "&File" as fileMenu:\n        item "&New..." as mnuNew\n'
+def test_menu_attaches_alongside_graphics_and_textedit_controls(qapp):
+    source = (
+        'window "W", 300, 300:\n'
+        "    graphics as canvas1 at 0, 0, 150, 150\n"
+        "    textedit as notes at 150, 0, 150, 150\n"
+        '    menu "&File" as fileMenu:\n'
+        '        item "&New..." as mnuNew\n'
+    )
     window = build(qapp, source)
     menubar = menu_bar_of(window)
     assert menubar is not None

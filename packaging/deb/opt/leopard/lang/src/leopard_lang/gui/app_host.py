@@ -16,10 +16,9 @@ from .. import ast_nodes as ast
 from ..errors import LeopardRuntimeError
 from ..interpreter import Interpreter
 from .dialogs import build_gui_builtins
+from .methods import MethodDispatcher
 from .properties import PropertyDispatcher
 from .sound import build_sound_builtins
-from .text_page import create_text_page
-from .turtle_canvas import TurtleCanvas, build_turtle_builtins
 from .window_builder import LeopardWindow, build_window_body
 
 
@@ -35,19 +34,10 @@ def run_window(program: ast.Program, *, existing_app: Optional[QApplication] = N
     window.setWindowTitle(window_decl.title)
     window.resize(int(window_decl.width), int(window_decl.height))
 
-    interpreter = Interpreter(gui_properties=PropertyDispatcher())
+    interpreter = Interpreter(gui_properties=PropertyDispatcher(), gui_methods=MethodDispatcher())
     interpreter.gui_builtins = build_gui_builtins(window)
     interpreter.gui_builtins.update(build_sound_builtins(window))
     interpreter.globals.set("window", window)
-
-    if window_decl.kind == "graphics_window":
-        canvas = TurtleCanvas(int(window_decl.width), int(window_decl.height), parent=window)
-        canvas.show()
-        interpreter.gui_builtins.update(build_turtle_builtins(canvas))
-    elif window_decl.kind == "text_window":
-        page = create_text_page(int(window_decl.width), int(window_decl.height), parent=window)
-        page.show()
-        interpreter.globals.set("page", page)
 
     build_window_body(window_decl, interpreter, interpreter.globals, window)
 

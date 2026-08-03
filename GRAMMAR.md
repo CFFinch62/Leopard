@@ -12,12 +12,12 @@ For build status, phase checklists, and where implementation currently stands, s
 3. Controls are **user-named and unlimited** (`button "Save" as btnSave`), not `button1..button5`.
 4. Lists/arrays are **1-based** (`fruits[1]` is the first element) — avoids off-by-one errors for beginners.
 5. Sound only, no video, for this pass.
-6. **Full menu support**: submenus, checkable items, accelerators — and available in every window type, not just `window`.
-7. `text window` mode is a **fully editable** text area, not a read-only scrollback.
+6. **Full menu support**: submenus, checkable items, accelerators — usable alongside any mix of controls in a window.
+7. A `textedit` control is a **fully editable** text area, not a read-only scrollback.
 8. Errors report as **line number + plain-English message**.
 9. Modulo is **`%`**, not `mod`. `else if` is **`elseif`**, one word. String concatenation is **`&`**, not `+` — `+` is numeric-only.
 10. `&` requires **explicit conversion** — no auto-stringifying numbers/booleans. Deliberate friction so beginners learn strings and numbers are different types.
-11. `page` (the implicit text-area target in `text window` blocks) is a **reserved word**, not usable as a variable/function/control name anywhere in a program.
+11. **Turtle graphics and text areas are controls, not window modes** (Phase 13): a `graphics` control and a `textedit` control are declared and positioned like any other control, so a single `window` can host graphics, text, and ordinary controls together, including more than one of each. Turtle commands are dotted method calls on a named `graphics` control (`canvas1.go(100)`), not bare statements — no `page`/`text window`/`graphics window` special-casing survives.
 12. `eq` is a **word alternative for `=` in comparison position only** — `=` still also means assignment, unchanged; `eq` never does. Added for readability, not to replace `=` (see §4).
 
 Everything below builds on those calls. Nothing here is final — flag anything that should change.
@@ -42,17 +42,11 @@ No line numbers, no `Line Input`-per-argument parsing — this is a real tokeniz
 
 ## 2. Program shape
 
-Leopard originally forced every program to declare `window` / `text window` / `graphics window` / `no window` up front. That's kept, with one simplification: **a plain script with no window header *is* "no window" mode** — the explicit keyword is dropped as redundant.
+Leopard originally forced every program to declare `window` / `text window` / `graphics window` / `no window` up front. As of Phase 13, `text window` and `graphics window` are gone — turtle graphics and fully-editable text areas are ordinary controls (`graphics`, `textedit`, §7) declared inside a plain `window`, not exclusive whole-program modes. That leaves exactly two program shapes: a `window`, or a plain script with no window header at all (**"no window" mode** — the explicit keyword is dropped as redundant).
 
 ```
 window "My App", 500, 400:
     ...controls, menus, event handlers...
-
-text window "Log Viewer", 600, 400:
-    ...
-
-graphics window "Turtle Demo", 640, 480:
-    ...turtle commands...
 ```
 
 `title, width, height` collapses the original's separate `window title` / `window size` sub-blocks into one header line.
@@ -202,6 +196,7 @@ This is the biggest structural change. Leopard had ~15 separate keywords just to
 | `radiobutton` | `radiobutton "Caption" as name at x, y, w, h` |
 | `checkbox` | `checkbox "Caption" as name at x, y, w, h` |
 | `groupbox` | `groupbox "Caption" as name at x, y, w, h` |
+| *(new, Phase 13 — was `graphics window`)* | `graphics as name at x, y, w, h` — a turtle-graphics canvas, see §10 |
 
 (`menu` moves to its own section below — full menu support outgrew a one-line table entry.)
 
@@ -235,7 +230,7 @@ first = fruitList.items[1]   # 1-based, same as list literals
 The original had one menu bar, one level deep, with accelerators (`&`) and separators (`|`) but no submenus and no checkable items:
 `menu #main, "&File", "&New...", [BmpButton1], |, "&Open...", [OpenFile], ...`
 
-Full support now — arbitrary submenu depth, checkable items, same `&`-accelerator convention (Qt honors it natively). Unlike the original (menu bar only made sense in its one `window` mode), `menu` blocks are legal in **any** program shape — `window`, `text window`, or `graphics window` — so a turtle-graphics program can have a "File > Save Drawing" menu, a text-editor-style `text window` program can have a full "File/Edit" menu bar, and so on:
+Full support now — arbitrary submenu depth, checkable items, same `&`-accelerator convention (Qt honors it natively). Unlike the original (menu bar only made sense in its one `window` mode), a `menu` block is legal alongside **any** mix of controls in a `window` — so a program built around a `graphics` control can have a "File > Save Drawing" menu, a program built around a `textedit` control can have a full "File/Edit" menu bar, and so on:
 
 ```
 window "Editor", 500, 400:
@@ -289,63 +284,66 @@ on click btnGreet:
 | Event | Applies to | Old equivalent |
 |---|---|---|
 | `on click` | button, bmpbutton, menu item | `button onclick`, `bmpbutton onclick`, menu handler |
-| `on change` | checkbox, radiobutton, combobox, checkitem, text window | `checkbox onclick`, `radiobutton onclick`, `combobox onclick` |
+| `on change` | checkbox, radiobutton, combobox, checkitem, textedit | `checkbox onclick`, `radiobutton onclick`, `combobox onclick` |
 | `on select` | listbox, combobox | `listbox onclick` (double-click), `combobox onclick` |
 | `on close` | window | `trapclose` |
 
 ---
 
-## 10. Turtle graphics (graphics window)
+## 10. Turtle graphics (a `graphics` control)
 
-Leopard's turtle vocabulary was already clean — kept almost verbatim as statements valid inside a `graphics window:` block:
+Leopard's turtle vocabulary was already clean — as of Phase 13 it's reached as dotted method calls on a named `graphics` control (§7) instead of bare statements inside an exclusive `graphics window`. This means a window can hold more than one `graphics` control at once, each with its own independent turtle, and can mix graphics with ordinary controls and menus:
 
 ```
-graphics window "Turtle Demo", 640, 480:
-    pen "red"
-    size 3
-    down
-    go 100
-    turn 90
-    go 100
-    up
-    goto 300, 300
-    circlefilled 40
+window "Turtle Demo", 640, 480:
+    graphics as canvas1 at 0, 0, 640, 480
+    canvas1.pen("red")
+    canvas1.size(3)
+    canvas1.down()
+    canvas1.go(100)
+    canvas1.turn(90)
+    canvas1.go(100)
+    canvas1.up()
+    canvas1.goto(300, 300)
+    canvas1.circlefilled(40)
 ```
 
-`up down home go goto place turn north fill pen size font text backcolor box boxfilled circle circlefilled ellipse ellipsefilled drawbmp` — all carried over unchanged in name and meaning.
+`up down home go goto place turn north fill pen size font text backcolor box boxfilled circle circlefilled ellipse ellipsefilled drawbmp` — every command from the original carried over unchanged in name and meaning, just called as `canvasName.command(args)` rather than a bare `command args` statement.
 
-**Semantics:**
+**Semantics** (`canvas1` below stands for whatever name you declared the `graphics` control under):
 
 | Command | Meaning |
 |---|---|
-| `up` / `down` | raise/lower the pen — `go`/`goto` only draw a line while the pen is down |
-| `go n` | move `n` pixels in the current heading, drawing a line if the pen is down |
-| `goto x, y` | move to absolute coordinates, drawing a line if the pen is down |
-| `place x, y` | jump to absolute coordinates without ever drawing, regardless of pen state |
-| `turn n` | increase heading by `n` degrees, clockwise |
-| `north` | reset heading to `0` (facing north/`-y`) without moving |
-| `home` | reset both position (canvas center) and heading to `0` |
-| `pen "color"` | set the line/pen color (invalid color names raise a runtime error) |
-| `fill "color"` | set the fill color used by `boxfilled`/`circlefilled`/`ellipsefilled` |
-| `backcolor "color"` | set the canvas background color |
-| `size n` | set pen width in pixels |
-| `font "family"` / `font "family", size` | set the font used by `text`; family alone, or family + point size |
-| `text "string"` | draw a string at the current position |
-| `box w, h` / `boxfilled w, h` | draw a rectangle `w` by `h` pixels, current position as the top-left corner |
-| `circle r` / `circlefilled r` | draw a circle of radius `r`, centered at the current position |
-| `ellipse w, h` / `ellipsefilled w, h` | draw an ellipse `w` by `h` pixels, centered at the current position |
-| `drawbmp "file.bmp", x, y` | draw an image at absolute coordinates `x, y` |
+| `.up()` / `.down()` | raise/lower the pen — `.go()`/`.goto()` only draw a line while the pen is down |
+| `.go(n)` | move `n` pixels in the current heading, drawing a line if the pen is down |
+| `.goto(x, y)` | move to absolute coordinates, drawing a line if the pen is down |
+| `.place(x, y)` | jump to absolute coordinates without ever drawing, regardless of pen state |
+| `.turn(n)` | increase heading by `n` degrees, clockwise |
+| `.north()` | reset heading to `0` (facing north/`-y`) without moving |
+| `.home()` | reset both position (canvas center) and heading to `0` |
+| `.pen("color")` | set the line/pen color (invalid color names raise a runtime error) |
+| `.fill("color")` | set the fill color used by `.boxfilled()`/`.circlefilled()`/`.ellipsefilled()` |
+| `.backcolor("color")` | set the canvas background color |
+| `.size(n)` | set pen width in pixels |
+| `.font("family")` / `.font("family", size)` | set the font used by `.text()`; family alone, or family + point size |
+| `.text("string")` | draw a string at the current position |
+| `.box(w, h)` / `.boxfilled(w, h)` | draw a rectangle `w` by `h` pixels, current position as the top-left corner |
+| `.circle(r)` / `.circlefilled(r)` | draw a circle of radius `r`, centered at the current position |
+| `.ellipse(w, h)` / `.ellipsefilled(w, h)` | draw an ellipse `w` by `h` pixels, centered at the current position |
+| `.drawbmp("file.bmp", x, y)` | draw an image at absolute coordinates `x, y` |
 
-Heading `0` is north; turning is clockwise (`turn 90` faces east). Default turtle state at the start of a `graphics window` block: pen up, position at canvas center, heading `0` (north), black pen and fill, pen size `1`, white background.
+Heading `0` is north; turning is clockwise (`.turn(90)` faces east). Default turtle state for a newly-declared `graphics` control: pen up, position at canvas center, heading `0` (north), black pen and fill, pen size `1`, white background — independent per control, so two `graphics` controls in the same window never share state.
 
 ---
 
-## 11. Text window (fully editable)
+## 11. Text areas (a `textedit` control)
 
-Original's `text window` type was a read-only scrollback the program could `print text` into or load a file with `open file`. Making it fully editable means treating the whole content area as **one implicit textedit control**, reusing the property/event vocabulary from Sections 7 and 9 instead of inventing new keywords — the same pattern turtle graphics already uses (an implicit target, no `as name` needed):
+Original's `text window` type was a read-only scrollback the program could `print text` into or load a file with `open file`. As of Phase 13 there's no separate window mode for this at all — a fully editable text area is just an ordinary `textedit` control (§7), reusing the property/event vocabulary from Sections 7 and 9 instead of inventing new keywords:
 
 ```
-text window "Notes", 600, 400:
+window "Notes", 600, 400:
+
+    textedit as page at 0, 20, 600, 380
 
     page.text = "Start typing..."
 
@@ -356,7 +354,7 @@ text window "Notes", 600, 400:
         write_file("notes.txt", page.text)
 ```
 
-`page` is the reserved name for the text area inside a `text window` block. It's a genuine reserved word — `page` can't be used as a variable, function, or control name *anywhere* in a Leopard program, not just inside a `text window` block, so there's never ambiguity about what `page` refers to when reading someone else's code. The old `print text` / `open file` actions become `page.text = page.text & "..."` and `page.text = read_file(path)` — no special-cased keywords required.
+`page` here is just a name the program picked — not a reserved word. Nothing stops you from declaring more than one `textedit` control in the same window (`notes`, `scratch`, whatever names you like), each with independent contents; there's no longer a single implicit text area a window is limited to. The old `print text` / `open file` actions become `page.text = page.text & "..."` and `page.text = read_file(path)` — no special-cased keywords required.
 
 ---
 
@@ -430,11 +428,13 @@ window "Greeter", 360, 160:
 
 Consolidated list of everything that can't be used as a variable, function, or control name, now that the vocabulary has grown past the point of keeping this in your head:
 
-`window`, `text window`, `graphics window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`, `page`
+`window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`
 
-Plus the control-declaration keywords from Section 7 (`textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`, `checkbox`, `groupbox`), every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `drawbmp`), and every builtin from Section 12.
+Plus the control-declaration keywords from Section 7 (`textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`, `checkbox`, `groupbox`, `graphics`), every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `drawbmp`), and every builtin from Section 12.
 
-`window` and `page` are also reserved as implicit identifiers, not just declaration keywords: inside any `window`/`text window`/`graphics window` block, `window` refers to the current window itself (so `window.title = "..."` works the same way in all three), and `page` refers to the implicit text-area control inside a `text window` block (see Section 11).
+`text window`, `graphics window`, and `page` are gone from this list (Phase 13): there's only one window kind left, and text areas are just ordinary `textedit` controls with whatever name you choose — `page` is not special anymore. The turtle-graphics command words stay reserved (still not usable as a variable/function/control name), but their only remaining role is as a method name after a dot on a `graphics` control (`canvas1.go(100)`) — see Section 10; they're never valid as bare, receiver-less statements now.
+
+`window` is also reserved as an implicit identifier, not just a declaration keyword: inside a `window` block, `window` refers to the current window itself, so `window.title = "..."` works as a property access.
 
 ---
 
@@ -480,9 +480,8 @@ Two categories, both reported the same way — `Line N: message` (status #8):
 - **Runtime errors** happen partway through an already-running program — e.g. `+` between two
   strings, `&` with a non-string operand (§4), a list index out of range or not a whole number
   (§3), calling `num()` on text that isn't a valid number, calling something that isn't defined,
-  or calling a turtle command/GUI builtin (§12) from a program with no window. Whatever ran
-  before the error already took effect (a file already written, a window already shown); nothing
-  after it does.
+  or calling a GUI builtin (§12) from a program with no window. Whatever ran before the error
+  already took effect (a file already written, a window already shown); nothing after it does.
 
 Where the message ends up depends on how the program is running, but the format is identical in
 all three:
