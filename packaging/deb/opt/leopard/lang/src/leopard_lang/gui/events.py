@@ -8,6 +8,10 @@ same as `textedit`, so `on change` fires on its `textChanged` signal.
 
 `on close` has no target widget (it's window-level) and is handled separately by
 `window_builder.LeopardWindow.closeEvent`, not here.
+
+`on mousemove` (Phase 16) is the one event here with no Qt signal of its own to hook —
+`TurtleCanvas.mouseMoved` (turtle_canvas.py) is a custom `pyqtSignal` the canvas emits from
+its `mouseMoveEvent` override, wired the same way as every native Qt signal below.
 """
 
 from __future__ import annotations
@@ -19,6 +23,7 @@ from .. import ast_nodes as ast
 from ..environment import Environment
 from ..errors import LeopardRuntimeError
 from ..interpreter import Interpreter
+from .turtle_canvas import TurtleCanvas
 
 
 def wire_event_handler(handler: ast.EventHandler, interpreter: Interpreter, env: Environment) -> None:
@@ -57,5 +62,10 @@ def wire_event_handler(handler: ast.EventHandler, interpreter: Interpreter, env:
             target.currentIndexChanged.connect(run_handler)
         else:
             raise LeopardRuntimeError(handler.line, "'on select' needs a listbox or combobox")
+    elif handler.event == "mousemove":
+        if isinstance(target, TurtleCanvas):
+            target.mouseMoved.connect(run_handler)
+        else:
+            raise LeopardRuntimeError(handler.line, "'on mousemove' needs a graphics control")
     else:
         raise LeopardRuntimeError(handler.line, f"'on {handler.event}' is not supported here")

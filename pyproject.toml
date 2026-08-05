@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leopard-lang"
-version = "0.3.1"
+version = "0.4.0"
 description = "Leopard: a beginner-friendly language with GUI windows, named controls (including graphics and textedit), and turtle graphics."
 requires-python = ">=3.12"
 

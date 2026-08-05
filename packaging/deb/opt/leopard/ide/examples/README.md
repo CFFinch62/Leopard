@@ -40,7 +40,7 @@ button, `sound_demo.lep`'s chime) also expect to be run from this folder.
 | # | File | Covers |
 |---|---|---|
 | 11 | [`turtle_demo.lep`](turtle_demo.lep) | A short first turtle-graphics program: a `graphics` control, pen state, movement, one filled shape |
-| 12 | [`turtle_full.lep`](turtle_full.lep) | Every turtle command as a dotted method call on a `graphics` control: `go`/`turn`/`goto`/`place`/`home`/`north`, every shape (plain and filled), text, fonts, background |
+| 12 | [`turtle_full.lep`](turtle_full.lep) | Every turtle command as a dotted method call on a `graphics` control: `go`/`turn`/`goto`/`place`/`home`/`north`, every shape (plain and filled, including `polygon`/`polygonfilled`), text, fonts, background |
 | 13 | [`notes.lep`](notes.lep) | A fully-editable text area: just an ordinary `textedit` control placed alongside a label |
 | 14 | [`paint_demo.lep`](paint_demo.lep) | A `graphics` control, a `textedit` control, and ordinary buttons together in one window — the payoff of both being controls instead of exclusive window kinds |
 | 15 | [`sound_demo.lep`](sound_demo.lep) | `play_sound`/`stop_sound` and `play_music`/`pause_music`/`stop_music` (a small bundled WAV under `assets/` makes this runnable out of the box) |
@@ -51,7 +51,7 @@ button, `sound_demo.lep`'s chime) also expect to be run from this folder.
 |---|---|---|
 | 16 | [`fizzbuzz.lep`](fizzbuzz.lep) | Loops, conditionals, a function, string joining, and a list-backed control, all in one window |
 | 17 | [`todo_capstone.lep`](todo_capstone.lep) | A small todo-list app: controls, events, functions, parallel lists standing in for "records," and saving state to a file on close |
-| 18 | [`leopard-paint.lep`](leopard-paint.lep) | A small paint program: every drawn shape lives in parallel lists, a Log menu saves/loads/replays the picture as plain text using `split()`/`join()` to turn each shape into a delimited line and back |
+| 18 | [`leopard-paint.lep`](leopard-paint.lep) | A small paint program: every drawn shape lives in parallel lists, a Log menu saves/loads/replays the picture as plain text using `split()`/`join()` to turn each shape into a delimited line and back. The only example demonstrating `on mousemove`/`.mouse_x`/`.mouse_y` (a live mouse-position readout) — see `turtle_full.lep` (12) for every other turtle/graphics command |
 
 Lessons 5 and 17 both demonstrate the same real language limit worth knowing
 up front: lists can replace an item in place (`list[i] = value`) and append

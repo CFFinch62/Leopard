@@ -307,6 +307,7 @@ on click btnGreet:
 | `on change` | a checkbox, radiobutton, combobox, checkitem, or a `textedit` control |
 | `on select` | a listbox or combobox selection changing |
 | `on close` | the window closing (no control name needed) |
+| `on mousemove` | the mouse moving over a `graphics` control — read where via `.mouse_x`/`.mouse_y` |
 
 Every event handler in a window shares one scope with the window's own setup code
 and with each other — see [Variables and types](#variables-and-types) above for
@@ -391,7 +392,9 @@ window "Turtle Demo", 640, 480:
 | `.box(w, h)` / `.boxfilled(w, h)` | rectangle from the current position |
 | `.circle(r)` / `.circlefilled(r)` | circle centered on the current position |
 | `.ellipse(w, h)` / `.ellipsefilled(w, h)` | ellipse centered on the current position |
+| `.polygon(sides, r)` / `.polygonfilled(sides, r)` | regular polygon (`sides` ≥ 3) centered on the current position, corners `r` pixels out |
 | `.drawbmp("path", x, y)` | draw an image file at a position |
+| `.mouse_x` / `.mouse_y` (read-only) | the mouse's last position over this control; pair with `on mousemove` |
 
 See [`turtle_demo.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/turtle_demo.lep)
 to try this yourself.

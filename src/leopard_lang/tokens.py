@@ -83,6 +83,7 @@ class TokenType(enum.Enum):
     CHANGE = "change"
     SELECT = "select"
     CLOSE = "close"
+    MOUSEMOVE = "mousemove"
 
     # Control declaration keywords (GRAMMAR.md §7)
     TEXTBOX = "textbox"
@@ -116,6 +117,8 @@ class TokenType(enum.Enum):
     CIRCLEFILLED = "circlefilled"
     ELLIPSE = "ellipse"
     ELLIPSEFILLED = "ellipsefilled"
+    POLYGON = "polygon"
+    POLYGONFILLED = "polygonfilled"
     DRAWBMP = "drawbmp"
 
     # Builtins (GRAMMAR.md §12)

@@ -1,5 +1,6 @@
 # Turtle graphics, full tour - every §10 command except drawbmp (which needs
-# an image file of your own; see the commented-out line at the bottom).
+# an image file of your own; see the commented-out line at the bottom), plus
+# polygon/polygonfilled (Phase 15) - the one command beyond §10's original set.
 # `graphics` is a control now (Phase 13); commands are dotted method calls on it.
 
 window "Turtle Full Tour", 500, 500:
@@ -53,6 +54,17 @@ window "Turtle Full Tour", 500, 500:
     canvas1.place(60, 400)
     canvas1.font("Arial", 16)
     canvas1.text("Leopard turtle graphics")
+
+    # polygon/polygonfilled draw a regular n-sided shape (n >= 3) centered on
+    # the current position, first corner in the current heading's direction.
+    canvas1.place(60, 80)
+    canvas1.pen("black")
+    canvas1.fill("crimson")
+    canvas1.polygonfilled(3, 35)
+
+    canvas1.place(440, 420)
+    canvas1.pen("darkgreen")
+    canvas1.polygon(6, 35)
 
     # canvas1.drawbmp("some_image.png", 20, 20)   -- draws an image file at a position
 

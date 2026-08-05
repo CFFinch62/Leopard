@@ -20,6 +20,8 @@ For build status, phase checklists, and where implementation currently stands, s
 11. **Turtle graphics and text areas are controls, not window modes** (Phase 13): a `graphics` control and a `textedit` control are declared and positioned like any other control, so a single `window` can host graphics, text, and ordinary controls together, including more than one of each. Turtle commands are dotted method calls on a named `graphics` control (`canvas1.go(100)`), not bare statements — no `page`/`text window`/`graphics window` special-casing survives.
 12. `eq` is a **word alternative for `=` in comparison position only** — `=` still also means assignment, unchanged; `eq` never does. Added for readability, not to replace `=` (see §4).
 13. **Strings support `[ ]` and `.length`, the same as lists** (Phase 14): `name[1]` reads the first character (1-based, same convention as list indexing), `name.length` is the character count. Read-only — `name[1] = "x"` is still a runtime error, since Leopard strings stay immutable; to build a new string you reassign the whole variable, same as the list "rebuild, don't remove" pattern (§3). `split(text, sep)` / `join(list, sep)` (§12) round out basic string handling — `split` turns delimited text (e.g. a `read_file()`'d line) into a list, `join` is its inverse.
+14. **Turtle graphics gained one command beyond the original's vocabulary** (Phase 15): `.polygon(sides, r)` / `.polygonfilled(sides, r)` draws a regular polygon (≥3 sides) centered on the current position. Every other §10 command is a faithful recreation of a `leopard.bas` command carried over unchanged; this is the one deliberate addition, made because the original had no way to draw a filled triangle, pentagon, or hexagon — only rectangles (`box`/`boxfilled`) and ellipses.
+15. **Leopard has mouse support** (Phase 16): `on mousemove <graphics-control>:` (§9) fires on every mouse move over a `graphics` control, and `.mouse_x`/`.mouse_y` (§10, read-only) report its last-seen position — the handler reads position back through a property, the same "event fires, state lives on the widget" pattern `on change` already established, rather than the event carrying parameters (nothing in Leopard's event handlers does). The original `leopard.bas` had no mouse support of any kind — this is a from-scratch addition, not a recreation.
 
 Everything below builds on those calls. Nothing here is final — flag anything that should change.
 
@@ -292,6 +294,12 @@ on click btnGreet:
 | `on change` | checkbox, radiobutton, combobox, checkitem, textedit | `checkbox onclick`, `radiobutton onclick`, `combobox onclick` |
 | `on select` | listbox, combobox | `listbox onclick` (double-click), `combobox onclick` |
 | `on close` | window | `trapclose` |
+| `on mousemove` | graphics | *(new, Phase 16 — original had no mouse support at all)* |
+
+`on mousemove canvas1:` fires on every mouse move over that `graphics` control (`setMouseTracking`
+is on, so no button needs to be held); the handler reads the position back via `.mouse_x`/`.mouse_y`
+(§10) rather than receiving it as a parameter — the same "event fires, handler reads state through
+an ordinary property" pattern `on change` already uses everywhere else.
 
 ---
 
@@ -315,6 +323,8 @@ window "Turtle Demo", 640, 480:
 
 `up down home go goto place turn north fill pen size font text backcolor box boxfilled circle circlefilled ellipse ellipsefilled drawbmp` — every command from the original carried over unchanged in name and meaning, just called as `canvasName.command(args)` rather than a bare `command args` statement.
 
+`polygon`/`polygonfilled` (Phase 15) are the one addition beyond the original's vocabulary — a regular n-sided polygon, added because the original had no way to draw a filled triangle or pentagon (only rectangles and ellipses).
+
 **Semantics** (`canvas1` below stands for whatever name you declared the `graphics` control under):
 
 | Command | Meaning |
@@ -335,9 +345,12 @@ window "Turtle Demo", 640, 480:
 | `.box(w, h)` / `.boxfilled(w, h)` | draw a rectangle `w` by `h` pixels, current position as the top-left corner |
 | `.circle(r)` / `.circlefilled(r)` | draw a circle of radius `r`, centered at the current position |
 | `.ellipse(w, h)` / `.ellipsefilled(w, h)` | draw an ellipse `w` by `h` pixels, centered at the current position |
+| `.polygon(sides, r)` / `.polygonfilled(sides, r)` | draw a regular polygon with `sides` corners (≥3), each `r` pixels from the current position (its center); the first corner sits in the current heading's direction |
 | `.drawbmp("file.bmp", x, y)` | draw an image at absolute coordinates `x, y` |
 
 Heading `0` is north; turning is clockwise (`.turn(90)` faces east). Default turtle state for a newly-declared `graphics` control: pen up, position at canvas center, heading `0` (north), black pen and fill, pen size `1`, white background — independent per control, so two `graphics` controls in the same window never share state.
+
+**`.mouse_x` / `.mouse_y`** (Phase 16, read-only): the mouse's last-seen position over this `graphics` control, in the same pixel coordinates as every drawing command above — `0, 0` until the mouse first moves over it. Not turtle state (moving the turtle doesn't touch these, and moving the mouse doesn't touch the turtle); read them from an `on mousemove` handler (§9) to track the cursor live. Assigning to either is a runtime error — they only ever reflect real mouse movement.
 
 ---
 
@@ -434,9 +447,9 @@ window "Greeter", 360, 160:
 
 Consolidated list of everything that can't be used as a variable, function, or control name, now that the vocabulary has grown past the point of keeping this in your head:
 
-`window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`
+`window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`, `mousemove`
 
-Plus the control-declaration keywords from Section 7 (`textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`, `checkbox`, `groupbox`, `graphics`), every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `drawbmp`), and every builtin from Section 12.
+Plus the control-declaration keywords from Section 7 (`textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`, `checkbox`, `groupbox`, `graphics`), every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `polygon`, `polygonfilled`, `drawbmp`), and every builtin from Section 12.
 
 `text window`, `graphics window`, and `page` are gone from this list (Phase 13): there's only one window kind left, and text areas are just ordinary `textedit` controls with whatever name you choose — `page` is not special anymore. The turtle-graphics command words stay reserved (still not usable as a variable/function/control name), but their only remaining role is as a method name after a dot on a `graphics` control (`canvas1.go(100)`) — see Section 10; they're never valid as bare, receiver-less statements now.
 

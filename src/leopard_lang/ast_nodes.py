@@ -104,7 +104,7 @@ class MenuDecl(Stmt):
 
 @dataclass
 class EventHandler(Stmt):
-    event: str  # "click" | "change" | "select" | "close"
+    event: str  # "click" | "change" | "select" | "close" | "mousemove"
     target: Optional[str]  # None for window-level `on close:`
     body: list[Stmt]
     line: int

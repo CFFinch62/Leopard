@@ -107,6 +107,7 @@ _EVENT_KEYWORDS = {
     TokenType.CHANGE: "change",
     TokenType.SELECT: "select",
     TokenType.CLOSE: "close",
+    TokenType.MOUSEMOVE: "mousemove",
 }
 
 
@@ -378,7 +379,8 @@ class Parser:
         line = self._advance().line  # 'on'
         if not self._check(*_EVENT_KEYWORDS):
             raise LeopardSyntaxError(
-                self._peek().line, "expected 'click', 'change', 'select', or 'close' after 'on'"
+                self._peek().line,
+                "expected 'click', 'change', 'select', 'close', or 'mousemove' after 'on'",
             )
         event = _EVENT_KEYWORDS[self._advance().type]
 

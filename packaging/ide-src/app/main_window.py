@@ -402,7 +402,7 @@ class MainWindow(QMainWindow):
         about_box.setTextFormat(Qt.TextFormat.RichText)
         about_box.setText(
             "<h3>Leopard IDE — Leopard Development Environment</h3>"
-            "<p><b>Version 0.3.1</b></p>"
+            "<p><b>Version 0.4.0</b></p>"
             "<p>A beginner-friendly IDE for learning and teaching Leopard.</p>"
             "<p>© 2026 Chuck Finch — Fragillidae Software</p>"
         )

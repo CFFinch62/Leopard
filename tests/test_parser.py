@@ -430,7 +430,10 @@ def test_grammar_examples_parse_without_error(path: pathlib.Path):
             'menu "&File" as fileMenu:\n    whoops\n',
             "Line 2: expected 'item', 'checkitem', 'submenu', or 'separator' inside a menu",
         ),
-        ("on whoops:\n    x = 1\n", "Line 1: expected 'click', 'change', 'select', or 'close' after 'on'"),
+        (
+            "on whoops:\n    x = 1\n",
+            "Line 1: expected 'click', 'change', 'select', 'close', or 'mousemove' after 'on'",
+        ),
     ],
 )
 def test_broken_programs_produce_exact_error(source, expected_message):

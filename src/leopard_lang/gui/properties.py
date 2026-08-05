@@ -14,6 +14,7 @@ from PyQt6.QtGui import QAction, QFont
 from PyQt6.QtWidgets import QComboBox, QListWidget, QTextEdit, QWidget
 
 from ..errors import LeopardRuntimeError, describe_type
+from .turtle_canvas import TurtleCanvas
 
 
 class ListboxItems(list):
@@ -83,6 +84,12 @@ def _text_set(widget: QWidget, value: str) -> None:
         widget.setText(value)
 
 
+def _mouse_pos_get(widget: QWidget, axis: str) -> int:
+    if not isinstance(widget, TurtleCanvas):
+        raise ValueError(f"'.{axis}' needs a graphics control")
+    return getattr(widget, axis)
+
+
 def _style_state(widget: QWidget) -> dict:
     style = getattr(widget, "_leo_style", None)
     if style is None:
@@ -108,7 +115,11 @@ _GETTERS = {
     "visible": lambda w: w.isVisible(),
     "enabled": lambda w: w.isEnabled(),
     "title": lambda w: w.windowTitle(),
+    "mouse_x": lambda w: _mouse_pos_get(w, "mouse_x"),
+    "mouse_y": lambda w: _mouse_pos_get(w, "mouse_y"),
 }
+
+_READ_ONLY_PROPS = {"mouse_x", "mouse_y"}
 
 _SETTERS = {
     "text": _text_set,
@@ -143,6 +154,8 @@ class PropertyDispatcher:
             raise LeopardRuntimeError(line, str(exc)) from exc
 
     def set(self, widget: QWidget, name: str, value: Any, line: int) -> None:
+        if name in _READ_ONLY_PROPS:
+            raise LeopardRuntimeError(line, f"'.{name}' is read-only")
         setter = _SETTERS.get(name)
         if setter is None:
             raise LeopardRuntimeError(line, f"'.{name}' is not a recognized property")

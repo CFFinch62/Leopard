@@ -16,8 +16,12 @@ from PyQt6.QtWidgets import (  # noqa: E402
     QTextEdit,
 )
 
+from PyQt6.QtCore import QEvent, QPointF, Qt  # noqa: E402
+from PyQt6.QtGui import QMouseEvent  # noqa: E402
+
 from leopard_lang.errors import LeopardRuntimeError  # noqa: E402
 from leopard_lang.gui.app_host import run_window  # noqa: E402
+from leopard_lang.gui.turtle_canvas import TurtleCanvas  # noqa: E402
 from leopard_lang.lexer import tokenize  # noqa: E402
 from leopard_lang.parser import parse  # noqa: E402
 
@@ -232,6 +236,83 @@ def test_on_click_requires_a_button(qapp):
             "\n"
             "    on click lbl:\n"
             "        x = 1\n",
+        )
+
+
+# ---------------------------------------------------------------------------
+# on mousemove + .mouse_x/.mouse_y (Phase 16) — TurtleCanvas.mouseMoved is a
+# custom pyqtSignal (turtle_canvas.py), not a native Qt widget signal like the
+# events above, so it's driven here by feeding a synthetic QMouseEvent straight
+# into mouseMoveEvent() rather than a QTest.mouseMove() (which needs a real,
+# visible/mapped window to hit-test against — not guaranteed under
+# QT_QPA_PLATFORM=offscreen).
+# ---------------------------------------------------------------------------
+
+
+def _synthetic_move(canvas: TurtleCanvas, x: float, y: float) -> None:
+    event = QMouseEvent(
+        QEvent.Type.MouseMove,
+        QPointF(x, y),
+        Qt.MouseButton.NoButton,
+        Qt.MouseButton.NoButton,
+        Qt.KeyboardModifier.NoModifier,
+    )
+    canvas.mouseMoveEvent(event)
+
+
+def test_mouse_x_mouse_y_start_at_zero(qapp):
+    window = build(qapp, 'window "W", 200, 200:\n    graphics as canvas1 at 0, 0, 100, 100\n')
+    (canvas,) = window.findChildren(TurtleCanvas)
+    assert (canvas.mouse_x, canvas.mouse_y) == (0, 0)
+
+
+def test_on_mousemove_runs_handler_body_and_updates_mouse_position(qapp):
+    window = build(
+        qapp,
+        'window "W", 200, 200:\n'
+        '    graphics as canvas1 at 0, 0, 100, 100\n'
+        '    label "" as posLabel at 0, 110, 100, 20\n'
+        "\n"
+        "    on mousemove canvas1:\n"
+        '        posLabel.text = "X: " & str(canvas1.mouse_x) & " Y: " & str(canvas1.mouse_y)\n',
+    )
+    (canvas,) = window.findChildren(TurtleCanvas)
+    (label,) = window.findChildren(QLabel)
+    assert label.text() == ""
+    _synthetic_move(canvas, 42, 77)
+    assert (canvas.mouse_x, canvas.mouse_y) == (42, 77)
+    assert label.text() == "X: 42 Y: 77"
+
+
+def test_on_mousemove_requires_a_graphics_control(qapp):
+    with pytest.raises(LeopardRuntimeError, match="needs a graphics control"):
+        build(
+            qapp,
+            'window "W", 200, 200:\n'
+            '    button "B" as btn at 0, 0, 100, 20\n'
+            "\n"
+            "    on mousemove btn:\n"
+            "        x = 1\n",
+        )
+
+
+def test_mouse_x_property_needs_a_graphics_control(qapp):
+    with pytest.raises(LeopardRuntimeError, match="needs a graphics control"):
+        build(
+            qapp,
+            'window "W", 200, 200:\n'
+            '    button "B" as btn at 0, 0, 100, 20\n'
+            "    x = btn.mouse_x\n",
+        )
+
+
+def test_mouse_x_and_mouse_y_are_read_only(qapp):
+    with pytest.raises(LeopardRuntimeError, match="'.mouse_x' is read-only"):
+        build(
+            qapp,
+            'window "W", 200, 200:\n'
+            '    graphics as canvas1 at 0, 0, 100, 100\n'
+            "    canvas1.mouse_x = 5\n",
         )
 
 

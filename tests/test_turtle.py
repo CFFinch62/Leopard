@@ -168,6 +168,27 @@ def test_ellipse_and_ellipsefilled(qapp):
     assert pixel(canvas, 320, 240) == "#000000"
 
 
+def test_polygon_is_outline_only(qapp):
+    _window, canvas = build(qapp, "    canvas1.polygon(3, 30)\n")
+    assert pixel(canvas, 320, 240) == "#ffffff"  # center untouched
+    assert pixel(canvas, 320, 210) == "#000000"  # top vertex (heading 0 = north)
+
+
+def test_polygonfilled_fills_center(qapp):
+    _window, canvas = build(qapp, "    canvas1.polygonfilled(3, 30)\n")
+    assert pixel(canvas, 320, 240) == "#000000"
+
+
+def test_polygon_first_vertex_follows_heading(qapp):
+    _window, canvas = build(qapp, "    canvas1.turn(90)\n    canvas1.polygon(4, 30)\n")
+    assert pixel(canvas, 350, 240) == "#000000"  # first vertex now due east
+
+
+def test_polygon_rejects_fewer_than_three_sides(qapp):
+    with pytest.raises(LeopardRuntimeError, match="at least 3 sides"):
+        build(qapp, "    canvas1.polygon(2, 30)\n")
+
+
 def test_text_draws_something(qapp):
     _window, canvas = build(qapp, '    canvas1.text("Hi")\n')
     img = canvas._pixmap.toImage()

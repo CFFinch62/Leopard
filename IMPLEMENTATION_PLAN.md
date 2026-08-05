@@ -77,18 +77,21 @@ the artificial limits and Windows-only dependencies.
 
 | | |
 |---|---|
-| **Active phase** | Phase 14 — String operations (complete) |
-| **Active task** | None within this phase — string `[ ]`/`.length`, `split`, and `join` are implemented; `GRAMMAR.md`/`LANGUAGE_GUIDE.md` updated; new tests added to `tests/test_interpreter.py`; `pytest` is green (315 tests). `examples/leopard-paint.lep`'s Log menu (Save/Load/Replay) is the motivating consumer. Nothing is committed yet. |
+| **Active phase** | Phase 16 — Mouse support + grid granularity (complete, unverified on-screen) |
+| **Active task** | None within this phase — engine change (a new `on mousemove` event and read-only `.mouse_x`/`.mouse_y` properties, Leopard's first mouse support of any kind), docs, and tests are done; `pytest` is green (324 tests). `examples/leopard-paint.lep` gained a "Grid Size" button and a live mouse-position readout in the toolbox. Verified headless only — no human has clicked through the actual buttons/dialogs on-screen for Phases 15 or 16 yet. Nothing is committed. |
 | **Last updated** | 2026-08-05 |
 | **Blockers** | None |
-| **Next concrete action** | None within this plan; awaiting the user's direction on whether/when to commit Phase 14. |
+| **Next concrete action** | User to run `leopard-paint.lep` on-screen and confirm everything from Phases 15–16 looks/feels right, then decide whether/when to commit. |
 
 *Phases 0–12 were complete and closed out as of 2026-07-31 (see git history / prior entries in
 this table for that snapshot). Phase 13 (2026-08-03) retired `text window`/`graphics window` as
 exclusive whole-program modes in favor of two ordinary placeable controls (`graphics`, `textedit`).
-Phase 14 (2026-08-05) is a small, user-approved follow-up: read-only `[ ]`/`.length` on strings plus
-`split`/`join`, added so a saved file can be parsed back into structured data — see Section 6's
-newest entry for the full rationale.*
+Phase 14 (2026-08-05) added read-only `[ ]`/`.length` on strings plus `split`/`join`, so a saved
+file can be parsed back into structured data. Phase 15 (2026-08-05) added `polygon`/`polygonfilled`
+turtle commands and used them (plus existing commands) to fix four issues, then two follow-up
+rounds of power-ups, in `examples/leopard-paint.lep`. Phase 16 (2026-08-05) added Leopard's first
+mouse support (`on mousemove`, `.mouse_x`/`.mouse_y`) and grid-size control — see Section 6's
+newest entries for the full rationale.*
 
 *(Whoever picks this up next: overwrite this table, don't append to it. It should always describe
 the present moment, not a history — history belongs in Section 6.)*
@@ -125,10 +128,11 @@ LANGUAGES/Leopard/
       app_host.py                    <- run_window(program, existing_app=None): owns a QApplication
                                          when standalone, reuses one when hosted (e.g. by the IDE)
       window_builder.py              <- control-declaration AST -> QWidget tree
-      properties.py                  <- .text/.color/.items/... get/set dispatch
-      events.py                      <- on click/change/select/close -> Qt signal wiring
+      properties.py                  <- .text/.color/.items/.mouse_x/.mouse_y/... get/set dispatch
+      events.py                      <- on click/change/select/close/mousemove -> Qt signal wiring
       menus.py                       <- menu/item/checkitem/submenu/separator -> QMenuBar
-      turtle_canvas.py               <- the `graphics` control's TurtleCanvas + every §10 command
+      turtle_canvas.py               <- the `graphics` control's TurtleCanvas + every §10 command,
+                                         plus mouse-position tracking (Phase 16)
       methods.py                     <- receiver.method(args) dispatch (Phase 13) -> a `graphics`
                                          control's turtle commands, mirrors properties.py's shape
       dialogs.py                     <- notice/confirm/ask/filedialog/colordialog/fontdialog
@@ -611,6 +615,157 @@ can round-trip structured data through `write_file`/`read_file` using `split`/`j
 
 ---
 
+### Phase 15 — Turtle `polygon`/`polygonfilled`; `leopard-paint.lep` line/border/grid-color fixes
+
+Goal: address four issues the user found while further testing `examples/leopard-paint.lep`:
+lines could only be drawn vertically (and had no thickness control), the "square" tool couldn't
+produce a triangle, filled shapes had no way to show a border in a different color than the fill,
+and the grid line color was hardcoded (invisible against a dark canvas background).
+
+- [x] `turtle_canvas.py`: new `.polygon(sides, r)` / `.polygonfilled(sides, r)` — a regular
+      `sides`-cornered polygon centered on the current position, first corner in the current
+      heading's direction, radius `r`. The one addition beyond the original `leopard.bas`
+      vocabulary (everything else in §10 is a faithful recreation of an existing command) —
+      needed because the original had no way to draw a filled triangle/pentagon/hexagon, only
+      rectangles (`box`/`boxfilled`) and ellipses. User confirmed this approach over the
+      alternatives (rectangles-only, or an outline-only triangle) when asked.
+- [x] `TokenType.POLYGON`/`POLYGONFILLED` added (auto-included in `KEYWORDS` via the existing
+      comprehension); `GRAMMAR.md` §10 (command list + semantics table), §14 (reserved words), and
+      the "decisions locked in" status list (new item 14) updated; `LANGUAGE_GUIDE.md`'s turtle
+      table updated; `examples/turtle_full.lep` (documented as demonstrating "every §10 command")
+      gained a `polygon`/`polygonfilled` demo, with `examples/README.md`'s row for it updated to
+      match
+- [x] `tests/test_turtle.py`: outline-only vs filled, heading-dependent first-vertex, `sides < 3`
+      error — same shape as the existing `box`/`circle` tests
+- [x] `examples/leopard-paint.lep` rewritten:
+      - Lines ask a direction (H/V) and thickness, not just length — `north()` then a conditional
+        `turn(90)` for horizontal, `size(thickness)` before drawing
+      - "Draw Square" became "Polygon": sides = 4 asks width/height separately (rectangle, via the
+        existing `boxfilled`); sides = 3 or ≥ 5 asks one side length and uses the new
+        `polygonfilled`
+      - Circles and polygons can ask for an optional border color (`confirm()` + `color_dialog()`);
+        without one, pen color matches fill color (the prior, borderless-looking behavior)
+      - New "Grid Color" button (`color_dialog()`); `drawGrid()` uses it instead of a hardcoded
+        `"gainsboro"`
+      - `fg_content`'s meaning is now kind-dependent and comma-delimited internally (distinct from
+        the outer `|`-delimited save-file format) — see the file's own header comment for the exact
+        per-kind layout; the save-file "background" line gained a fourth field for grid color
+      - Window grew from 650×520 to 650×560 (one more button in the "Background" groupbox, plus
+        the corresponding downward shift of "Shapes"/"Edits")
+- [x] Verified headless: `pytest` (all 319 tests, including the new turtle ones); a standalone
+      script built the paint window and called `drawShape()` directly for every kind (both line
+      directions, bordered circle, triangle, bordered rectangle, text) and checked pixels — no
+      dialogs involved, since `ask()`/`color_dialog()` block on a real display
+- [x] **Follow-up bug, found by the user on-screen:** a horizontal line's `.turn(90)` was never
+      turned back, so `.heading` stayed at 90° on the shared `canvas1` turtle for every shape drawn
+      afterward in the same `refreshCanvas()` pass — polygons (which use the ambient heading for
+      their first corner) inherited it, so a triangle's rotation silently depended on what was
+      drawn before it instead of pointing up as expected. Fixed with an unconditional `canvas1.
+      north()` at the top of `drawShape()`, so every shape now starts from a clean heading-0
+      baseline regardless of what the previous shape left behind.
+      User also asked for explicit rotation control while this was being diagnosed (offered as a
+      fork: bug-fix-only vs. also add a rotation input; user chose both) — `poly` mode's `content`
+      gained a 4th comma field, `rotation` (degrees, 0 = a corner points straight up), asked
+      right after the "Size" question and applied via `canvas1.turn(rotation)` before
+      `polygonfilled()`. `rect` mode's `content` is unchanged (3 fields) — `boxfilled` is
+      axis-aligned regardless of heading, so rotation is meaningless there.
+- [x] **Further power-up, user-requested (no engine change — every piece already existed as a
+      turtle command, just unused by this example):**
+      - Lines can now be drawn at any angle, not just vertical/horizontal — the line's `content`
+        field changed from `"direction,thickness"` (`"H"`/`"V"`) to `"angle,thickness"` (degrees,
+        0 = straight up), applied via `canvas1.turn(angle)`; replaces the H/V question with "Angle
+        in degrees (0 = straight up, 90 = right)", matching the rotation convention just added for
+        polygons. `drawShape()`'s unconditional top-of-function `.north()` (the fix above) already
+        guarantees a clean heading-0 baseline for this to turn from.
+      - "Draw Circle" became "Circle/Ellipse": asks Width and Height instead of a single Radius
+        (equal values still draw a circle) and always calls `.ellipsefilled(w, h)` instead of
+        `.circlefilled(r)` — `circle`'s `content` field gained a 2nd sub-field to carry the height
+        (`"height,bordercolor"`, `fg_size` still holds width), consistent with how `poly`'s `rect`
+        mode already carries a 2nd dimension. User chose merging into the existing button (asking
+        two dimensions) over a separate 5th "Draw Ellipse" button, to avoid another toolbox resize.
+      - Confirmed to the user that "fill any shape" was already true before this round — circles,
+        rectangles, and polygons all drew filled from Phase 15's start (border was a `pen()`/
+        `fill()` color distinction, not an outline-vs-filled one) — so no third change was needed
+        beyond making the new ellipse path filled too, which `.ellipsefilled()` already is.
+      - Verified headless the same way as the rest of this phase: `pytest` (all 319 tests) plus a
+        standalone `drawShape()` smoke test — a 45°/0°/90° line each landing where expected, a
+        bordered non-square ellipse, and a borderless equal-width/height "circle" — all via direct
+        pixel checks, no dialogs.
+
+**Definition of Done:** `pytest` green; `leopard-paint.lep` runs and every fix is exercised by the
+headless `drawShape()` smoke test above. **Not yet done:** interactive, on-screen verification of
+the actual dialogs/buttons by a human (this was file-and-headless-test-only work).
+
+---
+
+### Phase 16 — Mouse support (`on mousemove`, `.mouse_x`/`.mouse_y`); grid granularity
+
+Goal: two more `leopard-paint.lep` power-ups the user asked for. Grid granularity (script-only,
+no engine change) and a live mouse-position readout — the latter needed real engine work, since
+Leopard had **no mouse support of any kind** before this phase: no mouse events, no mouse-position
+query, nothing.
+
+- [x] `TokenType.MOUSEMOVE` added (`tokens.py`); `_EVENT_KEYWORDS` and the `on ...` parse-error
+      message updated (`parser.py`); `EventHandler.event`'s docstring comment updated
+      (`ast_nodes.py`) — no AST shape change, since (per the design research below) this fits
+      entirely within the existing parameterless-handler pattern
+- [x] `TurtleCanvas` (`turtle_canvas.py`): `setMouseTracking(True)` in `__init__` (so move events
+      fire with no button held — plain hovering, not dragging), `self.mouse_x`/`self.mouse_y`
+      initialized to `0`, a `mouseMoveEvent` override that updates both and emits a new
+      `mouseMoved = pyqtSignal()`
+- [x] `gui/properties.py`: read-only `.mouse_x`/`.mouse_y` getters, guarded to raise a clear
+      `'.mouse_x' needs a graphics control` if read on anything else; a small `_READ_ONLY_PROPS`
+      set makes `set()` raise `'.mouse_x' is read-only` instead of the generic "not a recognized
+      property" — the first read-only GUI property in the language (string `[ ]`, Phase 14, was
+      the only prior read-only precedent, and that one's read-only-ness came from Python string
+      immutability, not a deliberate design category, so this needed its own small mechanism)
+- [x] `gui/events.py`: new `mousemove` branch in `wire_event_handler`, requiring a `TurtleCanvas`
+      target and connecting to the new `mouseMoved` signal — the one event here with no *native*
+      Qt widget signal to hook (`TurtleCanvas.mouseMoved` is a custom `pyqtSignal`, wired exactly
+      like every native one below it)
+- [x] Design research done before writing code (see prompt in this session's transcript, not
+      reproduced here): confirmed event handlers are parameter-less everywhere in this grammar
+      (`_exec_block(handler.body, env)` — no signal payload ever reaches Leopard code) and that
+      the established idiom for "the handler needs data from the event" is a property read, not a
+      parameter — `on change` already works this way (`nameBox.text` inside the handler, not a
+      value passed to it). `on mousemove` + `.mouse_x`/`.mouse_y` follows that exactly, so no
+      grammar/AST redesign was needed, just one more event name and one more property pair.
+- [x] `GRAMMAR.md` §9 (event table + a paragraph on the pattern), §10 (new `.mouse_x`/`.mouse_y`
+      paragraph), §14 (reserved words + "decisions locked in" item 15) updated; `LANGUAGE_GUIDE.md`
+      updated to match (events table row, turtle command table row)
+- [x] `tests/test_gui.py`: `.mouse_x`/`.mouse_y` start at `(0, 0)`; `on mousemove` runs the handler
+      body and both properties reflect a synthetic `QMouseEvent` fed straight into
+      `mouseMoveEvent()` (chosen over `QTest.mouseMove()`, which needs a real, mapped/visible
+      window to hit-test against — not guaranteed under `QT_QPA_PLATFORM=offscreen`); `on
+      mousemove` on a non-graphics target errors; reading `.mouse_x` on a non-graphics control
+      errors; writing `.mouse_x` errors as read-only. `tests/test_parser.py`'s exact-error-message
+      test for `on whoops:` updated for the new "or 'mousemove'" wording.
+- [x] `examples/leopard-paint.lep`:
+      - New `grid_spacing` global (default `50`); `drawGrid()`'s two `for ... step 50` loops
+        became `step grid_spacing`; a new "Grid Size" button (`ask("Grid spacing in pixels:")` +
+        `num()`) — plain numeric input over a fixed-preset combobox/listbox, by user's choice, no
+        new control type needed, consistent with every other single-purpose `ask()` dialog in this
+        program. A spacing of `0` isn't specially guarded against — the `for` loop's own existing
+        "a 'for' loop's step cannot be 0" runtime error already covers it
+      - New "Mouse" groupbox at the bottom of the toolbox (room deliberately left there by an
+        earlier window resize) holding one `label`, updated live by `on mousemove canvas1:` reading
+        `canvas1.mouse_x`/`canvas1.mouse_y`
+      - Toolbox regeometried to fit the new "Grid Size" button and "Mouse" groupbox: window
+        700×600 → 700×680, `toolsGroup` 140×580 → 140×660, "Background" 120×150 → 120×190 (shifted
+        "Shapes"/"Edits" down 40px each, same resize pattern as every earlier toolbox addition)
+- [x] Verified headless: `pytest` (all 324 tests, 5 new); a standalone script fed a synthetic
+      `QMouseEvent` into the actual paint window's canvas and confirmed the "Mouse" label updated
+      (`"X: 123, Y: 88"`); `drawGrid()` called directly with `grid_spacing = 10` and checked via
+      pixel sampling that gridlines land every 10px, not 50; a full-window screenshot confirmed
+      the regeometried toolbox renders with no overlap/clipping
+
+**Definition of Done:** `pytest` green (324 tests); both features work end-to-end in headless
+smoke tests. **Not yet done:** on-screen human verification of the actual mouse-tracking feel and
+the Grid Size dialog (same caveat as every prior round in this phase — `ask()`/mouse events need a
+real display to click-test).
+
+---
+
 ## 5. Testing strategy
 
 - **Phases 0–3** are fully headless — plain `pytest`, runnable in any sandbox, by any agent,
@@ -638,6 +793,92 @@ can round-trip structured data through `write_file`/`read_file` using `split`/`j
 *(Append-only, newest first. Anything that isn't already captured in GRAMMAR.md's status list but
 affects implementation goes here — file layout calls, library choices, judgment calls made mid-phase.)*
 
+- **2026-08-05** — Phase 16: user asked for two more `leopard-paint.lep` power-ups — grid
+  granularity (choose the grid cell size) and a live mouse-position readout in the toolbox, "to
+  help users figure out how to place items on the canvas." Grid granularity was script-only (a
+  `grid_spacing` global replacing a hardcoded `50` in `drawGrid()`'s `for ... step` loops). Mouse
+  position was not — the user explicitly noted Leopard has no mouse features at all, correctly:
+  confirmed via research before writing any code that event handlers are parameter-less everywhere
+  in this grammar (`gui/events.py`'s `run_handler` discards every Qt signal argument) and that
+  there was no existing precedent for a widget signal even carrying position data into the
+  language. Landed on `on mousemove <graphics-control>:` (fires on hover, no button needed —
+  `setMouseTracking(True)`) paired with read-only `.mouse_x`/`.mouse_y` properties the handler
+  reads back, rather than inventing event parameters — this reuses the exact pattern `on change`
+  already established (state lives on the widget, the handler just re-reads it), so no
+  grammar/AST changes were needed, only one new event name and one new property pair. This is
+  Leopard's first *read-only* GUI property with a real design reason behind the read-only-ness
+  (string `[ ]`'s read-only-ness, Phase 14, was forced by Python string immutability, not chosen);
+  `gui/properties.py`'s `PropertyDispatcher.set()` gained a small `_READ_ONLY_PROPS` check so
+  writing `.mouse_x` errors with a clear "is read-only" message instead of the generic "not a
+  recognized property" that an unknown-setter fallthrough would otherwise give.
+
+  Two UI choices, both settled with the user before writing code: grid size via a free-form number
+  input (chosen) vs. a fixed-preset combobox/listbox — number input kept things consistent with
+  every other single-purpose `ask()` dialog already in this program and needed no new control
+  type. The mouse-position display's location (bottom of the TOOLS groupbox) was the user's own
+  call, not something asked about — they'd already left room for it there in an earlier unprompted
+  resize of the file, which is also why this round's toolbox regeometry (window 700×600 → 700×680)
+  only needed to grow enough for the *new* "Grid Size" button, not for the mouse display too.
+- **2026-08-05** — Phase 15, third round: user asked for three more `leopard-paint.lep` drawing
+  capabilities — arbitrary-angle lines, ellipse drawing, and fill on "any shape other than lines."
+  Unlike the triangle/pentagon/hexagon gap earlier in this phase, none of these needed an engine
+  change: `.turn(angle)` (arbitrary line angle) and `.ellipsefilled(w, h)` (ellipses) were already
+  §10 commands the example just hadn't been wired up to use, and every non-line shape (`circlefilled`/
+  `boxfilled`/`polygonfilled`) was already filled by construction — told the user this third item was
+  already satisfied rather than doing no-op work to "add" it.
+
+  Two UI forks, both resolved with the user before writing code: (1) fold ellipse into the existing
+  "Draw Circle" button (ask Width/Height instead of Radius, rename to "Circle/Ellipse") vs. a
+  separate 5th button — user chose folding in, to avoid another toolbox resize; (2) replace the
+  line tool's H/V question outright with a single "Angle in degrees" question vs. keeping H/V as
+  presets plus a third custom-angle option — user chose the outright replacement, matching the
+  rotation-in-degrees convention the polygon fix (previous entry) had just established. `line`'s
+  `content` field changed from `"direction,thickness"` to `"angle,thickness"`; `circle`'s changed
+  from a bare border-color string to `"height,bordercolor"` (mirrors `poly`'s `rect` mode already
+  carrying a 2nd dimension the same way). Old saved files break on load with these encodings: an
+  old line's `"H"`/`"V"` fails `num()` (angle is no longer a letter) and an old borderless circle's
+  content (a bare `""`) now reads as `height = num("")`, also an error — consistent with this
+  phase's earlier stance that save-file backward compatibility isn't a stated requirement.
+- **2026-08-05** — Phase 15 follow-up: the user found, on-screen, that a triangle's rotation was
+  effectively random — it depended on what had been drawn before it in the same picture, not on
+  anything they controlled. Root cause: the line branch's `.turn(90)` (added earlier this same
+  phase, for horizontal lines) never turned back, so a shared, mutable `canvas1.heading` carried a
+  leftover 90° into every later shape's `drawShape()` call, including polygons, which read the
+  ambient heading for their first corner. Fixed by making `drawShape()` call `canvas1.north()`
+  unconditionally before its per-kind branches, so every shape starts from heading 0 regardless of
+  draw order. Asked the user whether to stop there or also add explicit rotation control while
+  diagnosing it; they wanted both — `poly` mode's `content` field gained a 4th sub-field
+  (`rotation`, degrees, 0 = a corner points up), asked in `addShape()` right after the polygon's
+  size question, applied via `canvas1.turn(rotation)` immediately before `polygonfilled()`. `rect`
+  mode's `content` is untouched — a `boxfilled` rectangle is axis-aligned regardless of heading, so
+  a rotation field there would do nothing.
+- **2026-08-05** — Phase 15: added turtle `.polygon(sides, r)`/`.polygonfilled(sides, r)` (regular
+  n-gon, centered, first corner in the current heading's direction) and used it — plus purely
+  script-level changes to `examples/leopard-paint.lep` — to fix four issues the user hit while
+  further testing that example: (1) lines could only ever be drawn vertically and had no thickness
+  control; (2) the "Draw Square" tool couldn't make a triangle; (3) filled circles/polygons had no
+  border option distinct from their fill color; (4) the grid was a hardcoded `"gainsboro"`, invisible
+  against a dark canvas background.
+
+  (1), (3), and (4) needed no engine change — `north()`/`turn(90)` for line direction, `size(n)` for
+  thickness, and calling `pen()` with a color different from `fill()` for a border were all already
+  expressible with existing turtle commands; only (2) (a filled triangle/pentagon/hexagon) had no
+  existing primitive, since the original only ever offered rectangles and ellipses. Presented to the
+  user as a fork: add a real `polygon`/`polygonfilled` command (a genuine vocabulary addition beyond
+  "carried over unchanged from the original," GRAMMAR.md §10's stated scope for this section), keep
+  the tool rectangle/square-only, or fake an unfilled-outline triangle with `go()`/`turn()`. User
+  chose the new command.
+
+  `leopard-paint.lep`'s `fg_content` field (previously only meaningful for `"text"` shapes) is now
+  kind-dependent for every kind, packed as comma-separated sub-fields — chosen over adding more
+  parallel lists (which would also mean widening the save-file's fixed 6-field-per-line format)
+  since content was already an unused free-text slot for every non-text kind. Comma, not `|`, so it
+  nests inside the outer `|`-delimited save-file line without colliding with `split()`. The "square"
+  shape kind was replaced by "poly" (sides = 4 asks width/height and draws via the existing
+  `boxfilled`, matching prior square/rectangle behavior with corner-based positioning; sides = 3 or
+  ≥ 5 asks one side length and calls the new `polygonfilled`, centered) — old saved files with a
+  `"square"` line will silently draw nothing for that line (kind no longer matches any branch) since
+  save-file backward compatibility wasn't a stated requirement.
 - **2026-08-05** — Phase 14: added `split(text, sep)`/`join(list, sep)` plus read-only `[ ]`/
   `.length` on strings. Motivation: while finishing `examples/leopard-paint.lep`'s Log menu
   (Save/Load/Replay a drawing), it became clear a saved file could be written (`write_file`) but
