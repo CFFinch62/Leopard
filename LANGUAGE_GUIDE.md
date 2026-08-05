@@ -217,6 +217,28 @@ fruits.add("date")             # appends "date" to the end
 
 ---
 
+## Strings
+
+Strings support the same `[ ]` and `.length` you just saw for lists — also
+1-based, also read-only (a string can't be edited in place; build a new one
+and reassign the variable instead):
+
+```
+name = "Chuck"
+first_letter = name[1]     # "C"
+name_length = name.length  # 5
+```
+
+`split(text, sep)` breaks delimited text into a list; `join(list, sep)` puts
+it back together:
+
+```
+fields = split("Chuck,32,wizard", ",")   # ["Chuck", "32", "wizard"]
+row = join(fields, " | ")                # "Chuck | 32 | wizard"
+```
+
+---
+
 ## Windows and controls
 
 A window's body can declare named controls, each placed with `at x, y, width,
@@ -427,6 +449,8 @@ functions for everything from type conversion to file I/O:
 | `print value` | write a number, string, or `true`/`false` to the console, with a newline |
 | `str(value)` | convert a number or boolean to a string |
 | `num(text)` | convert a string to a number |
+| `split(text, sep)` → list | break delimited text into a list of strings |
+| `join(list, sep)` → string | join a list of strings back into one, with `sep` between each |
 | `ascii(char)` | a single character's character code |
 | `date()` / `time()` | today's date / the current time, as a string |
 | `notice("text")` | show a message box |

@@ -1,5 +1,5 @@
-"""Non-GUI, non-file builtins (GRAMMAR.md §12): str/num/print/ascii/date/time, plus the
-"system" builtins run_program/open_url/open_email.
+"""Non-GUI, non-file builtins (GRAMMAR.md §12): str/num/split/join/print/ascii/date/time,
+plus the "system" builtins run_program/open_url/open_email.
 
 Each function raises a plain ValueError/TypeError on bad input — the interpreter's
 call wrapper catches those and re-raises as a LeopardRuntimeError with the call's
@@ -47,6 +47,25 @@ def leo_print(value: object) -> None:
         ) from None
 
 
+def leo_split(text: str, sep: str) -> list:
+    if not isinstance(text, str):
+        raise TypeError(f"split() needs a string, not {describe_type(text)}")
+    if not isinstance(sep, str) or sep == "":
+        raise ValueError("split() needs a non-empty separator string")
+    return text.split(sep)
+
+
+def leo_join(items: list, sep: str) -> str:
+    if not isinstance(items, list):
+        raise TypeError(f"join() needs a list, not {describe_type(items)}")
+    if not isinstance(sep, str):
+        raise TypeError(f"join()'s separator must be a string, not {describe_type(sep)}")
+    for item in items:
+        if not isinstance(item, str):
+            raise TypeError("join() needs a list of strings — use str() to convert numbers first")
+    return sep.join(items)
+
+
 def leo_ascii(char: str) -> int:
     if not isinstance(char, str) or len(char) != 1:
         raise ValueError("ascii() needs a single character")
@@ -83,6 +102,8 @@ def leo_open_email(address: str) -> None:
 BUILTINS = {
     "str": leo_str,
     "num": leo_num,
+    "split": leo_split,
+    "join": leo_join,
     "print": leo_print,
     "ascii": leo_ascii,
     "date": leo_date,

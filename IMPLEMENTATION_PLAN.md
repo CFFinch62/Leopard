@@ -77,17 +77,18 @@ the artificial limits and Windows-only dependencies.
 
 | | |
 |---|---|
-| **Active phase** | Phase 13 — Unify turtle/text into GUI controls (complete) |
-| **Active task** | None within this phase — `graphics`/`textedit` controls, `gui_methods` dispatch, and the retirement of `text window`/`graphics window`/`page` are implemented; every test, fixture, example, and doc file that used the old syntax is rewritten; `pytest` is green (303 tests); a hand-written composite program (`graphics` + `textedit` + buttons) verified both via `leopard run` and a `leopard build` compile. Nothing is committed yet. |
-| **Last updated** | 2026-08-03 |
+| **Active phase** | Phase 14 — String operations (complete) |
+| **Active task** | None within this phase — string `[ ]`/`.length`, `split`, and `join` are implemented; `GRAMMAR.md`/`LANGUAGE_GUIDE.md` updated; new tests added to `tests/test_interpreter.py`; `pytest` is green (315 tests). `examples/leopard-paint.lep`'s Log menu (Save/Load/Replay) is the motivating consumer. Nothing is committed yet. |
+| **Last updated** | 2026-08-05 |
 | **Blockers** | None |
-| **Next concrete action** | None within this plan; awaiting the user's direction on whether/when to commit Phase 13. |
+| **Next concrete action** | None within this plan; awaiting the user's direction on whether/when to commit Phase 14. |
 
 *Phases 0–12 were complete and closed out as of 2026-07-31 (see git history / prior entries in
-this table for that snapshot). Phase 13 (2026-08-03) is a user-driven design change layered on
-top: it retires `text window`/`graphics window` as exclusive whole-program modes in favor of two
-ordinary placeable controls (`graphics`, `textedit`), so a single `window` can host any combination
-of graphics, text, and ordinary controls — see Section 6's newest entry for the full rationale.*
+this table for that snapshot). Phase 13 (2026-08-03) retired `text window`/`graphics window` as
+exclusive whole-program modes in favor of two ordinary placeable controls (`graphics`, `textedit`).
+Phase 14 (2026-08-05) is a small, user-approved follow-up: read-only `[ ]`/`.length` on strings plus
+`split`/`join`, added so a saved file can be parsed back into structured data — see Section 6's
+newest entry for the full rationale.*
 
 *(Whoever picks this up next: overwrite this table, don't append to it. It should always describe
 the present moment, not a history — history belongs in Section 6.)*
@@ -575,6 +576,41 @@ controls, coexisting) runs correctly standalone and survives a `leopard build` c
 
 ---
 
+### Phase 14 — String operations (`[ ]`/`.length` on strings, `split`/`join`)
+
+Goal: give programs a way to pull a saved/loaded text file apart into fields and put it back
+together — until now Leopard had `read_file()`/`write_file()` but no way to parse what came back
+(no string indexing, no `.length` on a string, no split/join), so a program could read a file but
+never do anything structured with its contents. User-driven follow-up work, surfaced while
+building `examples/leopard-paint.lep`'s save/load feature (needed to turn a saved picture file
+back into a list of shapes).
+
+- [x] `"text"[1]` reads a 1-based single character, same convention as list indexing —
+      `interpreter.py`'s `_eval_Index` gained a string branch (read-only: `_exec_PropertyAssignment`'s
+      index-assignment branch was deliberately left list-only, since Python strings are immutable —
+      `name[1] = "x"` still raises "only lists support [ ] assignment")
+- [x] `"text".length` — `_eval_PropertyAccess`'s existing list-only `.length` check widened to
+      `isinstance(obj, (list, str))`
+- [x] `split(text, sep)` → list of strings, `join(list, sep)` → string — two new builtins in
+      `builtins_core.py`, following the existing `str`/`num` pattern (plain `ValueError`/`TypeError`
+      on bad input, caught and re-raised with a line number by the interpreter's call wrapper);
+      `sep` must be a non-empty string (no implicit whitespace-split); `join` requires every list
+      element to already be a string (`str()` them first, matching `&`'s no-coercion philosophy)
+- [x] New `TokenType.SPLIT`/`TokenType.JOIN`, added to `parser.py`'s `_BUILTINS` set so they parse
+      as ordinary callable expressions, same as every other §12 builtin
+- [x] `GRAMMAR.md` §3 (lists) and §12 (builtins table) updated; `LANGUAGE_GUIDE.md` gained a
+      "Strings" section right after "Lists"
+- [x] Tests added to `tests/test_interpreter.py`: string indexing (1-based, out-of-range, index-0),
+      `.length`, `split`/`join` (including the empty-separator and non-string-list error cases, and
+      a split→join round trip); `test_indexing_a_non_list_is_error` — which asserted indexing a
+      *string* was an error — updated to assert indexing a *number* is the error instead, since
+      string indexing is now valid
+
+**Definition of Done:** `pytest` green (all prior tests plus new string-op tests); a `.lep` program
+can round-trip structured data through `write_file`/`read_file` using `split`/`join`.
+
+---
+
 ## 5. Testing strategy
 
 - **Phases 0–3** are fully headless — plain `pytest`, runnable in any sandbox, by any agent,
@@ -602,6 +638,23 @@ controls, coexisting) runs correctly standalone and survives a `leopard build` c
 *(Append-only, newest first. Anything that isn't already captured in GRAMMAR.md's status list but
 affects implementation goes here — file layout calls, library choices, judgment calls made mid-phase.)*
 
+- **2026-08-05** — Phase 14: added `split(text, sep)`/`join(list, sep)` plus read-only `[ ]`/
+  `.length` on strings. Motivation: while finishing `examples/leopard-paint.lep`'s Log menu
+  (Save/Load/Replay a drawing), it became clear a saved file could be written (`write_file`) but
+  never meaningfully read back (`read_file()` only ever returns one opaque blob — no way to break
+  it into fields), so "Load" couldn't reconstruct anything structured. Presented to the user as a
+  fork: keep the example Save-only/Replay-only-of-what's-already-in-memory (no language change), or
+  add minimal string ops and make Load a real round trip. User chose the language change.
+
+  Scope was deliberately kept narrow — exactly enough to parse a delimited save file back into a
+  list of fields: indexing and `.length` mirror the existing list vocabulary character-for-character
+  (same 1-based convention, same "out of range" error wording) rather than inventing new syntax;
+  `split`/`join` are a plain builtin pair, not a new operator. String `[ ]` stays **read-only** —
+  Python strings are immutable, and index-assignment would need to silently rebuild-and-reassign the
+  whole variable under the hood, which would break the "assignment always creates/updates a variable
+  in the *current* scope" rule `environment.py` documents; simpler to leave `name[1] = "x"` an error
+  and let the existing list-rebuild pattern (§3) cover it. No `trim`/`find`/substring-range support
+  added — not needed for the motivating use case, and left for a future pass if a real need shows up.
 - **2026-08-03** — Phase 13: retired `text window`/`graphics window` as exclusive whole-program
   window kinds in favor of two ordinary placeable controls, `graphics` and `textedit`, so a single
   `window` can host any mix of graphics, text, and ordinary controls at once (including more than

@@ -64,7 +64,7 @@ _BUILTINS_AND_COMMANDS = [
     "pen", "size", "font", "text", "backcolor", "box", "boxfilled",
     "circle", "circlefilled", "ellipse", "ellipsefilled", "drawbmp",
     # builtins (§12)
-    "str", "num", "notice", "confirm", "ask", "beep", "date", "time",
+    "str", "num", "split", "join", "notice", "confirm", "ask", "beep", "date", "time",
     "write_file", "append_file", "read_file", "delete_file", "make_dir",
     "remove_dir", "file_exists", "open_file_dialog", "save_file_dialog",
     "color_dialog", "font_dialog", "open_url", "open_email", "run_program",

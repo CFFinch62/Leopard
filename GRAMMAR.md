@@ -19,6 +19,7 @@ For build status, phase checklists, and where implementation currently stands, s
 10. `&` requires **explicit conversion** — no auto-stringifying numbers/booleans. Deliberate friction so beginners learn strings and numbers are different types.
 11. **Turtle graphics and text areas are controls, not window modes** (Phase 13): a `graphics` control and a `textedit` control are declared and positioned like any other control, so a single `window` can host graphics, text, and ordinary controls together, including more than one of each. Turtle commands are dotted method calls on a named `graphics` control (`canvas1.go(100)`), not bare statements — no `page`/`text window`/`graphics window` special-casing survives.
 12. `eq` is a **word alternative for `=` in comparison position only** — `=` still also means assignment, unchanged; `eq` never does. Added for readability, not to replace `=` (see §4).
+13. **Strings support `[ ]` and `.length`, the same as lists** (Phase 14): `name[1]` reads the first character (1-based, same convention as list indexing), `name.length` is the character count. Read-only — `name[1] = "x"` is still a runtime error, since Leopard strings stay immutable; to build a new string you reassign the whole variable, same as the list "rebuild, don't remove" pattern (§3). `split(text, sep)` / `join(list, sep)` (§12) round out basic string handling — `split` turns delimited text (e.g. a `read_file()`'d line) into a list, `join` is its inverse.
 
 Everything below builds on those calls. Nothing here is final — flag anything that should change.
 
@@ -66,6 +67,8 @@ first = fruits[1]                        # 1-based: "apple"
 ```
 
 Lists are **1-based** throughout — `fruits[1]` is the first element, `fruits[fruits.length]` is the last.
+
+Strings support the same `[ ]`/`.length` vocabulary, read-only: `"hello"[1]` is `"h"`, `"hello".length` is `5`. Unlike lists, a string's `[ ]` can't be assigned to (`name[1] = "H"` is a runtime error) — strings stay immutable, so building a new one means reassigning the whole variable. `split(text, sep)` and `join(list, sep)` (§12) are the other half of string handling — turning delimited text into a list and back.
 
 **Scoping — only `function` calls get their own scope.** A `function` call (§6) gets a private
 scope: assignments made inside it never affect a same-named variable outside it, even one that
@@ -365,6 +368,7 @@ The original's ~40 fixed onclick-action keywords become ordinary builtin functio
 | Old keyword | New builtin |
 |---|---|
 | *(new — required by `&`'s no-coercion rule)* | `str(value)` → string, `num(text)` → number |
+| *(new, Phase 14)* | `split(text, sep)` → list of strings, `join(list, sep)` → string |
 | *(new — a bare script's only console output)* | `print value` — writes a number, string, or `true`/`false` to the console, followed by a newline |
 | `notice` | `notice "text"` |
 | `confirm` | `confirm("Really quit?")` → boolean |

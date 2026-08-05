@@ -78,7 +78,7 @@ to do but never did.
   numbers, comments, operators, and `.property` access, each its own color.
 
 ## Examples
-`examples/` has sixteen complete, runnable programs arranged as a full
+`examples/` has eighteen complete, runnable programs arranged as a full
 curriculum — from bare-script fundamentals (variables, control flow,
 functions, lists, file I/O — no window at all) through every window kind
 (controls, dialogs, menus, turtle graphics, text windows, sound) to two

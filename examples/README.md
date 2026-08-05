@@ -1,6 +1,6 @@
 # Leopard example programs
 
-Seventeen complete, runnable programs, ordered as a curriculum — each one
+Eighteen complete, runnable programs, ordered as a curriculum — each one
 introduces a specific part of the language, building on the ones before it.
 Open any of them in the Leopard IDE and click Run, or from a terminal:
 
@@ -19,7 +19,7 @@ button, `sound_demo.lep`'s chime) also expect to be run from this folder.
 
 | # | File | Covers |
 |---|---|---|
-| 1 | [`01_variables_and_types.lep`](01_variables_and_types.lep) | Assignment, the four value types, `str()`/`num()`, `.length`, 1-based list indexing |
+| 1 | [`01_variables_and_types.lep`](01_variables_and_types.lep) | Assignment, the four value types, `str()`/`num()`, `.length`, 1-based list indexing (strings support the same `[ ]`/`.length`, plus `split()`/`join()` — see `LANGUAGE_GUIDE.md`'s "Strings" section and lesson 18) |
 | 2 | [`02_operators_and_expressions.lep`](02_operators_and_expressions.lep) | Every operator (`+ - * / % ^`, `&`, comparisons, `and`/`or`/`not`), why `+`/`&` are picky on purpose, and `eq` as a word alternative to `=` for equality only |
 | 3 | [`03_control_flow.lep`](03_control_flow.lep) | `if`/`elseif`/`else`, `while`, `for..to..step` (including counting down), `break`, `continue` |
 | 4 | [`04_functions.lep`](04_functions.lep) | Functions with and without `return`, recursion, and why a function can't mutate an outer variable by assigning to it |
@@ -51,6 +51,7 @@ button, `sound_demo.lep`'s chime) also expect to be run from this folder.
 |---|---|---|
 | 16 | [`fizzbuzz.lep`](fizzbuzz.lep) | Loops, conditionals, a function, string joining, and a list-backed control, all in one window |
 | 17 | [`todo_capstone.lep`](todo_capstone.lep) | A small todo-list app: controls, events, functions, parallel lists standing in for "records," and saving state to a file on close |
+| 18 | [`leopard-paint.lep`](leopard-paint.lep) | A small paint program: every drawn shape lives in parallel lists, a Log menu saves/loads/replays the picture as plain text using `split()`/`join()` to turn each shape into a delimited line and back |
 
 Lessons 5 and 17 both demonstrate the same real language limit worth knowing
 up front: lists can replace an item in place (`list[i] = value`) and append

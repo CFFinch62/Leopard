@@ -293,8 +293,19 @@ class Interpreter:
     def _eval_Index(self, expr: ast.Index, env: Environment) -> Any:
         obj = self._eval(expr.obj, env)
         index = self._eval(expr.index, env)
+        if isinstance(obj, str):
+            if isinstance(index, bool) or not isinstance(index, int):
+                raise LeopardRuntimeError(expr.line, "a string index must be a whole number")
+            if index < 1 or index > len(obj):
+                plural = "character" if len(obj) == 1 else "characters"
+                raise LeopardRuntimeError(
+                    expr.line, f"string index {index} is out of range (string has {len(obj)} {plural})"
+                )
+            return obj[index - 1]
         if not isinstance(obj, list):
-            raise LeopardRuntimeError(expr.line, f"cannot index into {describe_type(obj)} — only lists support [ ]")
+            raise LeopardRuntimeError(
+                expr.line, f"cannot index into {describe_type(obj)} — only lists and strings support [ ]"
+            )
         if isinstance(index, bool) or not isinstance(index, int):
             raise LeopardRuntimeError(expr.line, "a list index must be a whole number")
         if index < 1 or index > len(obj):
@@ -306,7 +317,7 @@ class Interpreter:
 
     def _eval_PropertyAccess(self, expr: ast.PropertyAccess, env: Environment) -> Any:
         obj = self._eval(expr.obj, env)
-        if isinstance(obj, list) and expr.name == "length":
+        if isinstance(obj, (list, str)) and expr.name == "length":
             return len(obj)
         if self.gui_properties is not None and self.gui_properties.is_gui_object(obj):
             return self.gui_properties.get(obj, expr.name, expr.line)

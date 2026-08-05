@@ -33,6 +33,8 @@ CONTROL_DECL_TYPES = {
 _BUILTINS = {
     TokenType.STR,
     TokenType.NUM,
+    TokenType.SPLIT,
+    TokenType.JOIN,
     TokenType.PRINT,
     TokenType.NOTICE,
     TokenType.CONFIRM,

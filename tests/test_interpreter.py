@@ -268,9 +268,9 @@ def test_list_index_zero_is_out_of_range():
         run('x = ["a"]\ny = x[0]\n')
 
 
-def test_indexing_a_non_list_is_error():
-    with pytest.raises(LeopardRuntimeError, match="only lists support"):
-        run('x = "hello"\ny = x[1]\n')
+def test_indexing_a_non_list_non_string_is_error():
+    with pytest.raises(LeopardRuntimeError, match="only lists and strings support"):
+        run("x = 5\ny = x[1]\n")
 
 
 def test_list_index_assignment():
@@ -288,8 +288,67 @@ def test_list_index_assignment_on_non_list_is_error():
 
 
 # ---------------------------------------------------------------------------
+# Strings: 1-based indexing (read-only) and .length, mirroring list behavior
+# ---------------------------------------------------------------------------
+
+
+def test_string_is_one_based():
+    assert value_of('x = "hello"\nfirst = x[1]\n', "first") == "h"
+
+
+def test_string_length():
+    assert value_of('x = "hello"\nn = x.length\n', "n") == 5
+
+
+def test_string_index_out_of_range():
+    with pytest.raises(LeopardRuntimeError, match="out of range"):
+        run('x = "hi"\ny = x[5]\n')
+
+
+def test_string_index_zero_is_out_of_range():
+    with pytest.raises(LeopardRuntimeError, match="out of range"):
+        run('x = "hi"\ny = x[0]\n')
+
+
+def test_string_index_assignment_is_still_an_error():
+    # Strings stay immutable — only lists support in-place [ ] assignment.
+    with pytest.raises(LeopardRuntimeError, match="only lists support"):
+        run('x = "hello"\nx[1] = "H"\n')
+
+
+# ---------------------------------------------------------------------------
 # Non-GUI builtins (GRAMMAR.md §12)
 # ---------------------------------------------------------------------------
+
+
+def test_split_basic():
+    assert value_of('x = split("a,b,c", ",")\n', "x") == ["a", "b", "c"]
+
+
+def test_split_multi_char_separator():
+    assert value_of('x = split("a::b::c", "::")\n', "x") == ["a", "b", "c"]
+
+
+def test_split_keeps_empty_fields():
+    assert value_of('x = split("a,,b", ",")\n', "x") == ["a", "", "b"]
+
+
+def test_split_with_empty_separator_is_error():
+    with pytest.raises(LeopardRuntimeError, match="non-empty separator"):
+        run('x = split("abc", "")\n')
+
+
+def test_join_basic():
+    assert value_of('x = join(["a", "b", "c"], ",")\n', "x") == "a,b,c"
+
+
+def test_join_of_non_strings_is_error():
+    with pytest.raises(LeopardRuntimeError, match="list of strings"):
+        run('x = join([1, 2], ",")\n')
+
+
+def test_split_join_round_trip():
+    assert value_of('x = join(split("a|b|c", "|"), "|")\n', "x") == "a|b|c"
 
 
 def test_str_of_number():
