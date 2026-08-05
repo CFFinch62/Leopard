@@ -235,6 +235,8 @@ The original had one menu bar, one level deep, with accelerators (`&`) and separ
 
 Full support now — arbitrary submenu depth, checkable items, same `&`-accelerator convention (Qt honors it natively). Unlike the original (menu bar only made sense in its one `window` mode), a `menu` block is legal alongside **any** mix of controls in a `window` — so a program built around a `graphics` control can have a "File > Save Drawing" menu, a program built around a `textedit` control can have a full "File/Edit" menu bar, and so on:
 
+A `menu` block always claims its own horizontal strip at the top of the window, regardless of where in the window body it's written: every other control's `at x, y, w, h` is measured from the workspace *below* the menu bar, and the window grows to fit, so a script's coordinates never need adjusting to make room for a menu.
+
 ```
 window "Editor", 500, 400:
 

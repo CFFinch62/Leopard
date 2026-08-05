@@ -76,7 +76,13 @@ def _eval_geometry_number(interpreter: Interpreter, expr: ast.Expr, env: Environ
     return value
 
 
-def build_control(decl: ast.ControlDecl, interpreter: Interpreter, env: Environment, parent: QWidget) -> QWidget:
+def build_control(
+    decl: ast.ControlDecl,
+    interpreter: Interpreter,
+    env: Environment,
+    parent: QWidget,
+    y_offset: int = 0,
+) -> QWidget:
     factory = _CONTROL_FACTORIES.get(decl.kind)
     if factory is None:
         raise LeopardRuntimeError(decl.line, f"unknown control kind '{decl.kind}'")
@@ -88,7 +94,7 @@ def build_control(decl: ast.ControlDecl, interpreter: Interpreter, env: Environm
 
     widget = factory(decl.caption, w, h)
     widget.setParent(parent)
-    widget.setGeometry(int(x), int(y), int(w), int(h))
+    widget.setGeometry(int(x), int(y) + y_offset, int(w), int(h))
     widget.show()
 
     env.set(decl.name, widget)
@@ -99,20 +105,31 @@ def build_window_body(
     window_decl: ast.WindowDecl, interpreter: Interpreter, env: Environment, container: QWidget
 ) -> None:
     """Walk a window's body once: hoist functions, build controls, wire events, and
-    run any other plain statement immediately (ordinary window "setup" code)."""
+    run any other plain statement immediately (ordinary window "setup" code).
+
+    A menu bar (if any) is built first and claims its own horizontal strip at the
+    top: every `at x, y, w, h` control below is shifted down by the menu bar's
+    height, and the window grows by that same amount, so a script's declared
+    `y` values always mean "position within the workspace under the menu" -
+    the same regardless of whether a menu is present, and regardless of where
+    in the window body the `menu` block happens to be written.
+    """
     for stmt in window_decl.body:
         if isinstance(stmt, ast.FunctionDecl):
             interpreter.functions[stmt.name] = stmt
 
     menu_decls = [stmt for stmt in window_decl.body if isinstance(stmt, ast.MenuDecl)]
+    y_offset = 0
     if menu_decls:
-        gui_menus.build_menu_bar(menu_decls, env, container)
+        menubar = gui_menus.build_menu_bar(menu_decls, env, container)
+        y_offset = menubar.height()
+        container.resize(container.width(), container.height() + y_offset)
 
     for stmt in window_decl.body:
         if isinstance(stmt, ast.FunctionDecl) or isinstance(stmt, ast.MenuDecl):
             continue  # hoisted / already built above
         if isinstance(stmt, ast.ControlDecl):
-            build_control(stmt, interpreter, env, container)
+            build_control(stmt, interpreter, env, container, y_offset=y_offset)
         elif isinstance(stmt, ast.EventHandler):
             if stmt.event == "close":
                 container._leo_on_close = (stmt, interpreter, env)
