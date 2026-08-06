@@ -3,11 +3,11 @@ import os
 import pathlib
 import sys
 
-root = pathlib.Path('/opt/leopard/lang/src')
+root = pathlib.Path('/opt/leopard/src')
 if root.exists():
     sys.path.insert(0, str(root))
 
-os.environ.setdefault('PYTHONPATH', '/opt/leopard/lang/src')
+os.environ.setdefault('PYTHONPATH', '/opt/leopard/src')
 
 if __name__ == '__main__':
     from leopard_lang.cli import main

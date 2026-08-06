@@ -56,19 +56,24 @@ Python installation required on the machine that runs it.
   verified against source.
 - **[dev-docs/GRAMMAR.md](dev-docs/GRAMMAR.md)** — the incremental design/decision log (why
   things are the way they are), rather than a flat reference.
-- **[Example curriculum](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)**
-  — sixteen sample programs in the companion [Leopard IDE](https://github.com/CFFinch62/LEOPARD-IDE)
-  repository, from bare-script fundamentals through every window kind to two
-  capstone projects. See that folder's own README for the full, ordered list.
+- **[user-docs/IDE_GUIDE.md](user-docs/IDE_GUIDE.md)** — a tour of the Leopard
+  IDE itself (below), for when you're ready to move past a plain text editor.
+- **[examples/](examples/)** — sixteen sample programs, from bare-script
+  fundamentals through every window kind to two capstone projects. See that
+  folder's own README for the full, ordered list.
 
 ## The Leopard IDE
 
 Leopard is fully usable from the command line with any text editor, but a
-dedicated IDE also exists, in its own separate repository:
-**[github.com/CFFinch62/LEOPARD-IDE](https://github.com/CFFinch62/LEOPARD-IDE)**
-— syntax highlighting, a run/build toolbar, a file browser, and the example
-curriculum above, all built on this package (`leopard-lang`). Install this
-package first (see Installing, above), then follow that repo's own README.
+dedicated IDE also lives in this repo, at `src/leopard_ide/` — syntax
+highlighting, a run/build toolbar, a file browser, an in-app documentation
+viewer (the three files linked above, under Learning Leopard), and the
+example curriculum above.
+
+```bash
+pip install -e ".[gui]"
+leopard-ide
+```
 
 ## Project layout
 
@@ -78,6 +83,7 @@ LANGUAGES/Leopard/
   user-docs/
     LANGUAGE_SPEC.md           <- complete, flat language reference
     LANGUAGE_GUIDE.md          <- beginner tutorial
+    IDE_GUIDE.md               <- tour of the Leopard IDE
   dev-docs/
     GRAMMAR.md                 <- design/decision log
     IMPLEMENTATION_PLAN.md     <- project tracker / build history
@@ -91,7 +97,11 @@ LANGUAGES/Leopard/
     cli.py                                           <- `leopard` command
     build.py                                         <- `leopard build` / PyInstaller packaging
     gui/                                              <- windows, menus, turtle, text window, sound
+  src/leopard_ide/                                    <- the Leopard IDE (`leopard-ide` command)
+    main.py, app/                                     <- editor, file browser, doc viewer, etc.
   tests/
+  build_ide.py                                        <- standalone PyInstaller build of the IDE
+  packaging/                                          <- .deb build (see packaging/README.md)
 ```
 
 ## Development

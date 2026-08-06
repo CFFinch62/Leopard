@@ -1,11 +1,11 @@
 Package: leopard-lang
-Version: 0.4.0-1
+Version: 0.5.0-1
 Section: misc
 Priority: optional
 Architecture: all
 Depends: python3, python3-pyqt6, python3-pyqt6.qtmultimedia
 Maintainer: Chuck Finch <chuck@fragillidae.com>
-Homepage: https://github.com/CFFinch62/LEOPARD-IDE
+Homepage: https://github.com/CFFinch62/Leopard
 Description: Leopard language runtime, CLI, and companion IDE
  Leopard is a beginner-friendly language for writing desktop GUI programs.
  This package installs the language runtime, the leopard CLI, and the

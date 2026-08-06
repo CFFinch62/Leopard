@@ -19,13 +19,13 @@ two ways:
 leopard run myprogram.lep
 ```
 
-**From the Leopard IDE** — a separate project; see
-[github.com/CFFinch62/LEOPARD-IDE](https://github.com/CFFinch62/LEOPARD-IDE) —
-open a `.lep` file (or start a new one), click **Run**.
+**From the Leopard IDE** — included in this repo; run `leopard-ide` after
+installing (see the main [README](../README.md)), open a `.lep` file (or
+start a new one), click **Run**. See `IDE_GUIDE.md` for a full tour of the
+IDE itself.
 
-Every example in this guide also lives in that IDE repo's
-[`examples/`](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)
-folder, ready to open and run.
+Every example in this guide also lives in this repo's
+[`examples/`](../examples/) folder, ready to open and run.
 
 ---
 
@@ -366,9 +366,9 @@ first = fruitList.items[1]
 | `.selected` | listbox, combobox | the 1-based index of the current selection |
 | `.visible`, `.enabled` | any control | show/hide, enable/disable |
 
-See [`greeter.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/greeter.lep)
+See [`greeter.lep`](../examples/greeter.lep)
 for a small complete program using several of these together, and
-[`fizzbuzz.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/fizzbuzz.lep)
+[`fizzbuzz.lep`](../examples/fizzbuzz.lep)
 for a window that combines a loop, a function, and a list-backed control.
 
 ---
@@ -434,7 +434,7 @@ window "Editor", 500, 400:
 
 The `&` before a letter (`&File`, `E&xit`) marks that letter as a keyboard shortcut
 within the menu — it's not part of the visible text otherwise. See
-[`menus.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/menus.lep)
+[`menus.lep`](../examples/menus.lep)
 for the complete, runnable version of this program.
 
 ---
@@ -483,7 +483,7 @@ window "Turtle Demo", 640, 480:
 | `.drawbmp("path", x, y)` | draw an image file at a position |
 | `.mouse_x` / `.mouse_y` (read-only) | the mouse's last position over this control; pair with `on mousemove` |
 
-See [`turtle_demo.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/turtle_demo.lep)
+See [`turtle_demo.lep`](../examples/turtle_demo.lep)
 to try this yourself.
 
 ---
@@ -511,7 +511,7 @@ window "Notes", 600, 400:
 exactly like any other control: `.text` to read or write its contents, `on
 change`/`on close` to react to it. Nothing stops you from declaring more than one
 in the same window, each independent. See
-[`notes.lep`](https://github.com/CFFinch62/LEOPARD-IDE/blob/main/examples/notes.lep)
+[`notes.lep`](../examples/notes.lep)
 for the full version.
 
 ---
@@ -661,9 +661,9 @@ with one click: the **Build** toolbar button.
 
 - `LANGUAGE_SPEC.md` — the complete, precise language spec (every operator, every
   keyword, every builtin, with the exact rules).
-- **[Example curriculum](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)**
-  — sixteen complete programs in the companion
-  [Leopard IDE](https://github.com/CFFinch62/LEOPARD-IDE) repository, one for
+- **[Example curriculum](../examples/)** — sixteen complete programs, one for
   each major area covered above.
+- `IDE_GUIDE.md` — a full tour of the Leopard IDE itself, if you'd rather
+  write in that than a plain text editor.
 - `../dev-docs/IMPLEMENTATION_PLAN.md` — if you're curious how Leopard itself was built, or
   want to contribute.
