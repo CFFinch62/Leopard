@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional
 
+from PyQt6.QtCore import QEventLoop
 from PyQt6.QtGui import QSyntaxHighlighter, QTextDocument
 from PyQt6.QtWidgets import QApplication
 
@@ -106,6 +107,38 @@ class _TerminalStdout:
             self._buffer = ""
 
 
+class _TerminalStdin:
+    """Adapts a TerminalPane's input line to the readline() interface
+    Python's builtin `input()` needs — the counterpart to `_TerminalStdout`
+    for `leo_input` (builtins_core.py), which is plain `input()`.
+
+    `interpret()` runs synchronously on the GUI thread (see `_run_code()` in
+    main_window.py), so this can't just call a blocking read — that would
+    freeze the whole IDE, including the input line the user needs to type
+    into. Instead it runs a nested QEventLoop, which keeps Qt's event
+    processing (and so the input line) alive while sitting still until the
+    terminal's `command_entered` signal fires for the next line typed in.
+    """
+
+    def __init__(self, terminal: "TerminalPane") -> None:
+        self._terminal = terminal
+
+    def readline(self, *_args: object) -> str:
+        loop = QEventLoop()
+        received: List[str] = []
+
+        def _capture(text: str) -> None:
+            received.append(text)
+            loop.quit()
+
+        connection = self._terminal.command_entered.connect(_capture)
+        try:
+            loop.exec()
+        finally:
+            self._terminal.command_entered.disconnect(connection)
+        return f"{received[0]}\n" if received else ""
+
+
 class LeopardLanguageProvider(LanguageProvider):
     @property
     def name(self) -> str:
@@ -134,12 +167,15 @@ class LeopardLanguageProvider(LanguageProvider):
                 run_window(program, existing_app=QApplication.instance())
             else:
                 stdout = _TerminalStdout(terminal)
+                stdin = _TerminalStdin(terminal)
                 old_stdout, sys.stdout = sys.stdout, stdout
+                old_stdin, sys.stdin = sys.stdin, stdin
                 try:
                     interpret(program)
                 finally:
                     stdout.flush()
                     sys.stdout = old_stdout
+                    sys.stdin = old_stdin
                 terminal.write("Program finished.\n")
         except LeopardError as exc:
             terminal.write(f"{exc}\n")
