@@ -205,6 +205,57 @@ def test_for_loop_without_step():
     assert stmt.step is None
 
 
+def test_for_each_loop():
+    prog = parse_src("for fruit in fruits:\n    print fruit\n")
+    (stmt,) = prog.body
+    assert isinstance(stmt, ast.ForEach)
+    assert stmt.var == "fruit"
+    assert stmt.iterable == ast.Identifier("fruits", 1)
+
+
+def test_do_until_loop():
+    prog = parse_src("do:\n    n = n + 1\nuntil n >= 3\n")
+    (stmt,) = prog.body
+    assert isinstance(stmt, ast.DoUntil)
+    assert len(stmt.body) == 1
+    assert stmt.condition.op == ">="
+
+
+def test_switch_with_default():
+    src = (
+        "switch x:\n"
+        "    case 1:\n"
+        '        print "one"\n'
+        "    case 2:\n"
+        '        print "two"\n'
+        "    default:\n"
+        '        print "other"\n'
+    )
+    prog = parse_src(src)
+    (stmt,) = prog.body
+    assert isinstance(stmt, ast.Switch)
+    assert len(stmt.cases) == 2
+    assert stmt.cases[0][0] == ast.Literal(1, 2)
+    assert stmt.default_body is not None and len(stmt.default_body) == 1
+
+
+def test_switch_without_default():
+    prog = parse_src('switch x:\n    case 1:\n        print "one"\n')
+    (stmt,) = prog.body
+    assert stmt.default_body is None
+
+
+def test_switch_with_no_cases_is_error():
+    with pytest.raises(LeopardSyntaxError):
+        parse_src("switch x:\n    default:\n        y = 1\n")
+
+
+def test_switch_with_two_defaults_is_error():
+    src = "switch x:\n    case 1:\n        y = 1\n    default:\n        y = 2\n    default:\n        y = 3\n"
+    with pytest.raises(LeopardSyntaxError):
+        parse_src(src)
+
+
 def test_break_and_continue():
     prog = parse_src("break\ncontinue\n")
     assert prog.body == [ast.Break(1), ast.Continue(2)]

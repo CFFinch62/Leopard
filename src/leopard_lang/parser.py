@@ -67,6 +67,46 @@ _BUILTINS = {
     TokenType.STOP_MUSIC,
     TokenType.PAUSE_MUSIC,
     TokenType.DOWNLOAD_FILE,
+    TokenType.ABS,
+    TokenType.SQRT,
+    TokenType.ROUND,
+    TokenType.FLOOR,
+    TokenType.CEIL,
+    TokenType.MIN,
+    TokenType.MAX,
+    TokenType.SIN,
+    TokenType.COS,
+    TokenType.TAN,
+    TokenType.LOG,
+    TokenType.EXP,
+    TokenType.PI,
+    TokenType.RANDOM,
+    TokenType.RANDOM_INT,
+    TokenType.CHR,
+    TokenType.UPPER,
+    TokenType.LOWER,
+    TokenType.TRIM,
+    TokenType.CONTAINS,
+    TokenType.INDEX_OF,
+    TokenType.REVERSE,
+    TokenType.REPLACE,
+    TokenType.STARTS_WITH,
+    TokenType.ENDS_WITH,
+    TokenType.SUBSTRING,
+    TokenType.LEFT,
+    TokenType.RIGHT,
+    TokenType.SORT,
+    TokenType.REMOVE_AT,
+    TokenType.SUM,
+    TokenType.SHUFFLE,
+    TokenType.CHOICE,
+    TokenType.INPUT,
+    TokenType.GET_ENV,
+    TokenType.COMMAND_LINE_ARGS,
+    TokenType.IS_NUMBER,
+    TokenType.IS_STRING,
+    TokenType.IS_LIST,
+    TokenType.TYPE_OF,
 }
 
 # Reserved words valid in expression position, resolving like a plain identifier.
@@ -206,6 +246,10 @@ class Parser:
             return self._while_statement()
         if self._check(TokenType.FOR):
             return self._for_statement()
+        if self._check(TokenType.DO):
+            return self._do_until_statement()
+        if self._check(TokenType.SWITCH):
+            return self._switch_statement()
         if self._check(TokenType.BREAK):
             line = self._advance().line
             self._expect(TokenType.NEWLINE, "expected a new line after 'break'")
@@ -256,10 +300,17 @@ class Parser:
         body = self._parse_block("'while' condition")
         return ast.While(condition=condition, body=body, line=line)
 
-    def _for_statement(self) -> ast.For:
+    def _for_statement(self) -> ast.Stmt:
         line = self._advance().line  # 'for'
         var_tok = self._expect(TokenType.IDENTIFIER, "expected a loop variable name after 'for'")
-        self._expect(TokenType.EQ, "expected '=' after the 'for' loop variable")
+
+        if self._check(TokenType.IN):
+            self._advance()
+            iterable = self._expr()
+            body = self._parse_block("the 'for ... in' loop header")
+            return ast.ForEach(var=var_tok.lexeme, iterable=iterable, body=body, line=line)
+
+        self._expect(TokenType.EQ, "expected '=' or 'in' after the 'for' loop variable")
         start = self._expr()
         self._expect(TokenType.TO, "expected 'to' after the 'for' loop's starting value")
         end = self._expr()
@@ -268,6 +319,45 @@ class Parser:
             step = self._expr()
         body = self._parse_block("the 'for' loop header")
         return ast.For(var=var_tok.lexeme, start=start, end=end, step=step, body=body, line=line)
+
+    def _do_until_statement(self) -> ast.DoUntil:
+        line = self._advance().line  # 'do'
+        body = self._parse_block("'do'")
+        self._expect(TokenType.UNTIL, "expected 'until' after the 'do' block")
+        condition = self._expr()
+        self._expect(TokenType.NEWLINE, "expected a new line after the 'until' condition")
+        return ast.DoUntil(body=body, condition=condition, line=line)
+
+    def _switch_statement(self) -> ast.Switch:
+        line = self._advance().line  # 'switch'
+        subject = self._expr()
+        self._expect(TokenType.COLON, "expected ':' after the 'switch' value")
+        self._expect(TokenType.NEWLINE, "expected a new line after ':' in the 'switch' header")
+        self._skip_blank_newlines()
+        self._expect(TokenType.INDENT, "expected an indented block of 'case'/'default' clauses after 'switch'")
+
+        cases: list[tuple[ast.Expr, list[ast.Stmt]]] = []
+        default_body: list[ast.Stmt] | None = None
+        self._skip_blank_newlines()
+        while not self._check(TokenType.DEDENT):
+            if self._check(TokenType.CASE):
+                self._advance()
+                case_value = self._expr()
+                case_body = self._parse_block("the 'case' value")
+                cases.append((case_value, case_body))
+            elif self._check(TokenType.DEFAULT):
+                self._advance()
+                if default_body is not None:
+                    raise LeopardSyntaxError(self._peek().line, "a 'switch' can only have one 'default' clause")
+                default_body = self._parse_block("'default'")
+            else:
+                raise LeopardSyntaxError(self._peek().line, "expected 'case' or 'default' inside a 'switch'")
+            self._skip_blank_newlines()
+
+        self._expect(TokenType.DEDENT, "expected the 'switch' block to end")
+        if not cases:
+            raise LeopardSyntaxError(line, "a 'switch' needs at least one 'case' clause")
+        return ast.Switch(subject=subject, cases=cases, default_body=default_body, line=line)
 
     def _return_statement(self) -> ast.Return:
         line = self._advance().line  # 'return'

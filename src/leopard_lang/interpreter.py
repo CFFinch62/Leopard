@@ -58,13 +58,19 @@ class Interpreter:
         gui_properties: Any = None,
         gui_builtins: Optional[dict] = None,
         gui_methods: Any = None,
+        script_args: Optional[list[str]] = None,
     ):
         self.globals = Environment()
+        for const_name, const_value in builtins_core.CONSTANTS.items():
+            self.globals.set(const_name, const_value)
         self.functions: dict[str, ast.FunctionDecl] = {}
         self._loop_depth = 0
         self.gui_properties = gui_properties
         self.gui_builtins: dict = gui_builtins or {}
         self.gui_methods = gui_methods
+        # Extra argv passed after the script's own filename on `leopard run script.lep ...`
+        # (LANGUAGE_ROADMAP.md §6) — exposed to the program via command_line_args().
+        self.script_args: list[str] = list(script_args) if script_args else []
 
     def run(self, program: ast.Program) -> None:
         if program.window is not None:
@@ -172,6 +178,51 @@ class Interpreter:
                 i += step
         finally:
             self._loop_depth -= 1
+
+    def _exec_ForEach(self, stmt: ast.ForEach, env: Environment) -> None:
+        items = self._eval(stmt.iterable, env)
+        if not isinstance(items, list):
+            raise LeopardRuntimeError(
+                stmt.line, f"'for ... in' needs a list, not {describe_type(items)}"
+            )
+        self._loop_depth += 1
+        try:
+            # Iterate a snapshot so a body that appends to the same list (`.add()`)
+            # can't turn this into a longer — or infinite — loop.
+            for item in list(items):
+                env.set(stmt.var, item)
+                try:
+                    self._exec_block(stmt.body, env)
+                except _ContinueSignal:
+                    continue
+                except _BreakSignal:
+                    break
+        finally:
+            self._loop_depth -= 1
+
+    def _exec_DoUntil(self, stmt: ast.DoUntil, env: Environment) -> None:
+        self._loop_depth += 1
+        try:
+            while True:
+                try:
+                    self._exec_block(stmt.body, env)
+                except _ContinueSignal:
+                    pass
+                except _BreakSignal:
+                    break
+                if self._require_bool(self._eval(stmt.condition, env), stmt.line, "a condition"):
+                    break
+        finally:
+            self._loop_depth -= 1
+
+    def _exec_Switch(self, stmt: ast.Switch, env: Environment) -> None:
+        subject = self._eval(stmt.subject, env)
+        for case_value, case_body in stmt.cases:
+            if self._values_equal(subject, self._eval(case_value, env)):
+                self._exec_block(case_body, env)
+                return
+        if stmt.default_body is not None:
+            self._exec_block(stmt.default_body, env)
 
     def _exec_Break(self, stmt: ast.Break, env: Environment) -> None:
         if self._loop_depth == 0:
@@ -350,6 +401,10 @@ class Interpreter:
 
         if name in self.functions:
             return self._call_function(self.functions[name], args, expr.line)
+        if name == "command_line_args":
+            if args:
+                raise LeopardRuntimeError(expr.line, "'command_line_args()' takes no arguments")
+            return list(self.script_args)
         if name in self.gui_builtins:
             return self._call_builtin(self.gui_builtins[name], name, args, expr.line)
         if name in builtins_core.BUILTINS:
@@ -411,5 +466,5 @@ class Interpreter:
         return type(left) is type(right) and left == right
 
 
-def interpret(program: ast.Program) -> None:
-    Interpreter().run(program)
+def interpret(program: ast.Program, script_args: Optional[list[str]] = None) -> None:
+    Interpreter(script_args=script_args).run(program)

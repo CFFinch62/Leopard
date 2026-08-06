@@ -19,6 +19,10 @@ def main(argv: list[str] | None = None) -> int:
 
     run_parser = subparsers.add_parser("run", help="Run a .lep script")
     run_parser.add_argument("script", type=Path)
+    run_parser.add_argument(
+        "script_args", nargs=argparse.REMAINDER,
+        help="Extra arguments passed through to the script, readable via command_line_args()",
+    )
 
     build_parser = subparsers.add_parser(
         "build", help="Compile a .lep script into a standalone executable"
@@ -42,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
             if program.window is not None:
                 _run_gui(program)
             else:
-                interpret(program)
+                interpret(program, script_args=args.script_args)
         except LeopardError as exc:
             print(str(exc), file=sys.stderr)
             return 1

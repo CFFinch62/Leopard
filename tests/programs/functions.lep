@@ -1,5 +1,5 @@
 function greet(who):
     return "Hello, " & who
 
-function log(message):
+function log_message(message):
     outputBox.text = outputBox.text & message & "\n"

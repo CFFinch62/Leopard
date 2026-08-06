@@ -174,6 +174,29 @@ class For(Stmt):
 
 
 @dataclass
+class ForEach(Stmt):
+    var: str
+    iterable: Expr
+    body: list[Stmt]
+    line: int
+
+
+@dataclass
+class DoUntil(Stmt):
+    body: list[Stmt]
+    condition: Expr
+    line: int
+
+
+@dataclass
+class Switch(Stmt):
+    subject: Expr
+    cases: list[tuple[Expr, list[Stmt]]]
+    default_body: Optional[list[Stmt]]
+    line: int
+
+
+@dataclass
 class Break(Stmt):
     line: int
 

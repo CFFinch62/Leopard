@@ -69,6 +69,12 @@ class TokenType(enum.Enum):
     FOR = "for"
     TO = "to"
     STEP = "step"
+    IN = "in"
+    DO = "do"
+    UNTIL = "until"
+    SWITCH = "switch"
+    CASE = "case"
+    DEFAULT = "default"
     BREAK = "break"
     CONTINUE = "continue"
     FUNCTION = "function"
@@ -158,6 +164,56 @@ class TokenType(enum.Enum):
     STOP_MUSIC = "stop_music"
     PAUSE_MUSIC = "pause_music"
     DOWNLOAD_FILE = "download_file"
+
+    # Math builtins (LANGUAGE_ROADMAP.md §1)
+    ABS = "abs"
+    SQRT = "sqrt"
+    ROUND = "round"
+    FLOOR = "floor"
+    CEIL = "ceil"
+    MIN = "min"
+    MAX = "max"
+    SIN = "sin"
+    COS = "cos"
+    TAN = "tan"
+    LOG = "log"
+    EXP = "exp"
+    PI = "pi"
+
+    # Randomness builtins (LANGUAGE_ROADMAP.md §2)
+    RANDOM = "random"
+    RANDOM_INT = "random_int"
+
+    # String/list builtins (LANGUAGE_ROADMAP.md §3, §4)
+    CHR = "chr"
+    UPPER = "upper"
+    LOWER = "lower"
+    TRIM = "trim"
+    CONTAINS = "contains"
+    INDEX_OF = "index_of"
+    REVERSE = "reverse"
+    REPLACE = "replace"
+    STARTS_WITH = "starts_with"
+    ENDS_WITH = "ends_with"
+    SUBSTRING = "substring"
+    LEFT = "left"
+    RIGHT = "right"
+    SORT = "sort"
+    REMOVE_AT = "remove_at"
+    SUM = "sum"
+    SHUFFLE = "shuffle"
+    CHOICE = "choice"
+
+    # Console I/O builtins (LANGUAGE_ROADMAP.md §6)
+    INPUT = "input"
+    GET_ENV = "get_env"
+    COMMAND_LINE_ARGS = "command_line_args"
+
+    # Type introspection builtins (LANGUAGE_ROADMAP.md §7)
+    IS_NUMBER = "is_number"
+    IS_STRING = "is_string"
+    IS_LIST = "is_list"
+    TYPE_OF = "type_of"
 
 
 _NON_KEYWORD_TYPES = {

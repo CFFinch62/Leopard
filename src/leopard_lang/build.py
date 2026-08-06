@@ -37,7 +37,7 @@ SOURCE = {source!r}
 
 def main() -> int:
     try:
-        interpret(parse(tokenize(SOURCE)))
+        interpret(parse(tokenize(SOURCE)), script_args=sys.argv[1:])
     except LeopardError as exc:
         print(exc, file=sys.stderr)
         return 1
