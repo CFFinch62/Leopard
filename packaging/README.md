@@ -26,7 +26,7 @@ From the repository root:
 chmod 755 packaging/deb/DEBIAN/postinst packaging/deb/DEBIAN/postrm \
   packaging/deb/usr/bin/leopard packaging/deb/usr/bin/leopard-ide
 
-dpkg-deb --build packaging/deb packaging/leopard-lang_0.5.0-1_all.deb
+dpkg-deb --build packaging/deb packaging/leopard-lang_0.5.1-1_all.deb
 ```
 
 `packaging/stage.sh` copies `src/`, `user-docs/`, `examples/`, and the app
@@ -37,7 +37,7 @@ source tree, so there's no separate IDE copy to remember to keep in sync.
 ## Install on Linux Mint
 
 ```bash
-sudo dpkg -i packaging/leopard-lang_0.5.0-1_all.deb
+sudo dpkg -i packaging/leopard-lang_0.5.1-1_all.deb
 sudo apt-get install -f
 ```
 

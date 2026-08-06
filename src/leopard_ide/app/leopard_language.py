@@ -11,6 +11,7 @@ spawning a second one.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional
 
@@ -72,6 +73,39 @@ class LeopardHighlighter(RuleBasedHighlighter):
         super().__init__(document, syntax_colors, _leopard_rules())
 
 
+class _TerminalStdout:
+    """Adapts a TerminalPane to the text-stream interface `print()` writes to.
+
+    A bare (no-window) program's output is its only visible result, and
+    `leo_print` (builtins_core.py) is plain Python `print()` — correct for
+    `leopard run` on a real terminal, but with nowhere to go when the IDE has
+    no controlling terminal of its own (e.g. launched from a desktop icon).
+    Swapping this in for the duration of `interpret()` is what makes that
+    output land in the terminal pane instead.
+
+    `print()` issues one write() per fragment plus a separate one for the
+    trailing "\\n", so fragments are buffered until a full line is seen —
+    TerminalPane.write() always starts a new line, so writing partial
+    fragments directly would fragment single print() calls across lines.
+    """
+
+    def __init__(self, terminal: "TerminalPane") -> None:
+        self._terminal = terminal
+        self._buffer = ""
+
+    def write(self, text: str) -> int:
+        self._buffer += text
+        while "\n" in self._buffer:
+            line, self._buffer = self._buffer.split("\n", 1)
+            self._terminal.write(line)
+        return len(text)
+
+    def flush(self) -> None:
+        if self._buffer:
+            self._terminal.write(self._buffer)
+            self._buffer = ""
+
+
 class LeopardLanguageProvider(LanguageProvider):
     @property
     def name(self) -> str:
@@ -99,7 +133,13 @@ class LeopardLanguageProvider(LanguageProvider):
 
                 run_window(program, existing_app=QApplication.instance())
             else:
-                interpret(program)
+                stdout = _TerminalStdout(terminal)
+                old_stdout, sys.stdout = sys.stdout, stdout
+                try:
+                    interpret(program)
+                finally:
+                    stdout.flush()
+                    sys.stdout = old_stdout
                 terminal.write("Program finished.\n")
         except LeopardError as exc:
             terminal.write(f"{exc}\n")
