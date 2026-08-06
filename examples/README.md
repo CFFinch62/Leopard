@@ -19,7 +19,7 @@ button, `sound_demo.lep`'s chime) also expect to be run from this folder.
 
 | # | File | Covers |
 |---|---|---|
-| 1 | [`01_variables_and_types.lep`](01_variables_and_types.lep) | Assignment, the four value types, `str()`/`num()`, `.length`, 1-based list indexing (strings support the same `[ ]`/`.length`, plus `split()`/`join()` — see `LANGUAGE_GUIDE.md`'s "Strings" section and lesson 18) |
+| 1 | [`01_variables_and_types.lep`](01_variables_and_types.lep) | Assignment, the four value types, `str()`/`num()`, `.length`, 1-based list indexing (strings support the same `[ ]`/`.length`, plus `split()`/`join()` — see `../user-docs/LANGUAGE_GUIDE.md`'s "Strings" section and lesson 18) |
 | 2 | [`02_operators_and_expressions.lep`](02_operators_and_expressions.lep) | Every operator (`+ - * / % ^`, `&`, comparisons, `and`/`or`/`not`), why `+`/`&` are picky on purpose, and `eq` as a word alternative to `=` for equality only |
 | 3 | [`03_control_flow.lep`](03_control_flow.lep) | `if`/`elseif`/`else`, `while`, `for..to..step` (including counting down), `break`, `continue` |
 | 4 | [`04_functions.lep`](04_functions.lep) | Functions with and without `return`, recursion, and why a function can't mutate an outer variable by assigning to it |
@@ -59,5 +59,5 @@ one (`.add()`), but there's no built-in way to remove one — both lessons show
 the standard workaround for removal: build a fresh list with `.add()` and
 reassign the whole variable to it.
 
-See `LANGUAGES/Leopard/LANGUAGE_GUIDE.md` for a prose walkthrough of the same
-material, and `LANGUAGES/Leopard/GRAMMAR.md` for the complete, precise spec.
+See `LANGUAGES/Leopard/user-docs/LANGUAGE_GUIDE.md` for a prose walkthrough of the same
+material, and `LANGUAGES/Leopard/user-docs/LANGUAGE_SPEC.md` for the complete, precise spec.

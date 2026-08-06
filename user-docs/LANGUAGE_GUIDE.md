@@ -4,7 +4,7 @@
 
 A friendly introduction to Leopard for people who haven't programmed much before —
 or who have, and just want to see how Leopard does things. If you already know the
-language and want the precise, complete rules, see `GRAMMAR.md` instead; this guide
+language and want the precise, complete rules, see `LANGUAGE_SPEC.md` instead; this guide
 is the "learn by reading and trying things" companion to that spec.
 
 ---
@@ -185,6 +185,48 @@ continue
 time (`step` defaults to `1` if you leave it out, and can be negative to count
 down). `break` exits a loop immediately; `continue` skips to the next iteration.
 
+### Looping over a list directly
+
+If you just want each element of a list in turn, `for ... in ...` skips the
+manual index variable:
+
+```
+for fruit in fruits:
+    print fruit
+```
+
+### `do ... until` — run the body at least once
+
+`while` checks its condition *before* the first pass, so it might never run
+the body at all. `do ... until` is the other way around: the body always runs
+once, and the loop keeps repeating until the condition becomes `true`:
+
+```
+n = 0
+do:
+    n = n + 1
+until n >= 5
+```
+
+### `switch` — a multi-way `if`
+
+Once you're comparing one value against several possibilities, `switch` reads
+better than a long `elseif` chain:
+
+```
+switch grade:
+    case "A":
+        notice "Excellent!"
+    case "B":
+        notice "Good."
+    default:
+        notice "Keep working."
+```
+
+It checks `case` values top to bottom and runs the first one that matches
+(same equality as `=`) — no falling through into the next case. `default` is
+optional and catches anything that didn't match.
+
 ---
 
 ## Functions
@@ -196,7 +238,7 @@ if you never `return` anything, it's just a block of code you can call by name:
 function greet(who):
     return "Hello, " & who
 
-function log(message):
+function log_message(message):
     outputBox.text = outputBox.text & message & "\n"
 ```
 
@@ -213,6 +255,28 @@ fruits = ["apple", "banana", "cherry"]
 first = fruits[1]              # "apple"
 last = fruits[fruits.length]   # "cherry" — .length gives you the count
 fruits.add("date")             # appends "date" to the end
+```
+
+`.add()` is still the only thing that changes a list in place. Beyond that,
+a set of list functions build and hand back a *new* list instead — your
+original list is never touched by any of these:
+
+```
+scores = [40, 90, 10, 70]
+ranked = sort(scores)                # [10, 40, 70, 90] — scores itself is unchanged
+shuffled = shuffle(scores)           # scores' elements, in random order
+trimmed = remove_at(scores, 1)       # [90, 10, 70]
+```
+
+And these just look at a list without changing anything:
+
+```
+sum(scores)                # 210
+min(scores)                # 10
+max(scores)                # 90
+contains(scores, 90)       # true
+index_of(scores, 90)       # 2 — 1-based, 0 if not found
+choice(scores)             # one random element
 ```
 
 ---
@@ -236,6 +300,29 @@ it back together:
 fields = split("Chuck,32,wizard", ",")   # ["Chuck", "32", "wizard"]
 row = join(fields, " | ")                # "Chuck | 32 | wizard"
 ```
+
+Beyond that, there's a full string toolkit — case conversion, trimming,
+searching, and slicing:
+
+```
+name = "  Chuck  "
+clean = trim(name)                  # "Chuck"
+upper(clean)                        # "CHUCK"
+lower(clean)                        # "chuck"
+contains(clean, "uck")              # true
+index_of(clean, "u")                # 2 — 1-based, 0 if not found
+replace("Hi NAME", "NAME", clean)   # "Hi Chuck"
+starts_with(clean, "Ch")            # true
+ends_with(clean, "ck")              # true
+substring(clean, 1, 3)              # "Chu" — inclusive, 1-based
+left(clean, 2)                      # "Ch"
+right(clean, 2)                     # "ck"
+reverse(clean)                      # "kcuhC"
+chr(65)                             # "A" — the inverse of ascii("A")
+```
+
+`contains`, `index_of`, and `reverse` also work on lists — see
+[Lists](#lists).
 
 ---
 
@@ -455,7 +542,36 @@ functions for everything from type conversion to file I/O:
 | `split(text, sep)` → list | break delimited text into a list of strings |
 | `join(list, sep)` → string | join a list of strings back into one, with `sep` between each |
 | `ascii(char)` | a single character's character code |
+| `chr(code)` | the character for a character code (inverse of `ascii`) |
+| `upper(s)` / `lower(s)` | case conversion |
+| `trim(s)` | strip leading/trailing whitespace |
+| `replace(s, old, new)` | replace every occurrence of `old` with `new` |
+| `starts_with(s, prefix)` / `ends_with(s, suffix)` | prefix/suffix test |
+| `substring(s, start, end)` | characters `start` to `end`, inclusive, 1-based |
+| `left(s, n)` / `right(s, n)` | first/last `n` characters |
+| `contains(collection, value)` | substring or list-membership test → boolean |
+| `index_of(collection, value)` | 1-based position in a string or list, `0` if not found |
+| `reverse(collection)` | reverse a string's characters or a list's elements |
+| `sort(list)` | a new, ascending-order copy of a list of numbers or strings |
+| `remove_at(list, index)` | a new list with the item at `index` removed |
+| `sum(list)` | total of a numeric list |
+| `shuffle(list)` | a new list, elements in random order |
+| `choice(list)` | one random element from a list |
+| `input()` / `input(prompt)` | read one line of text from the console (a bare script's version of `ask()`) |
+| `get_env(name)` | an OS environment variable, or `""` if it isn't set |
+| `command_line_args()` | list of extra arguments passed after the script's filename on the command line |
 | `date()` / `time()` | today's date / the current time, as a string |
+| `abs(n)` / `sqrt(n)` | absolute value / square root |
+| `round(n)` / `round(n, digits)` | round to the nearest whole number, or to `digits` decimal places |
+| `floor(n)` / `ceil(n)` | round down / up |
+| `min(a, b)` / `max(a, b)` | smaller/larger of two numbers (also works on a list: `min(list)`) |
+| `sin(n)` / `cos(n)` / `tan(n)` | trig functions, **`n` in degrees** |
+| `log(n)` / `exp(n)` | natural log / `e^n` |
+| `pi` | the constant `3.14159...` — no parens, it's not a call |
+| `random()` | a random float, `0 <= n < 1` |
+| `random_int(min, max)` | a random whole number, `min <= n <= max` inclusive |
+| `is_number(value)` / `is_string(value)` / `is_list(value)` | type checks → boolean; never error |
+| `type_of(value)` | `"number"` / `"string"` / `"boolean"` / `"list"` / `"nothing"` |
 | `notice("text")` | show a message box |
 | `confirm("question")` → boolean | show a yes/no dialog |
 | `ask("prompt")` → string | show a text-entry dialog |
@@ -514,6 +630,16 @@ else:
 pattern throughout — checking `= ""` before using typed-in text, and checking
 `selected = 0` before reading a listbox's current selection.
 
+`is_number(value)` / `is_string(value)` / `is_list(value)` extend the same idiom to types: since
+there's no way to attempt a `num()` conversion and recover from failure, check first instead:
+
+```
+if is_number(answer):
+    age = answer
+elseif is_string(answer):
+    age = num(answer)
+```
+
 ---
 
 ## Compiling your program
@@ -533,11 +659,11 @@ with one click: the **Build** toolbar button.
 
 ## Where to go next
 
-- `GRAMMAR.md` — the complete, precise language spec (every operator, every
+- `LANGUAGE_SPEC.md` — the complete, precise language spec (every operator, every
   keyword, every builtin, with the exact rules).
 - **[Example curriculum](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)**
   — sixteen complete programs in the companion
   [Leopard IDE](https://github.com/CFFinch62/LEOPARD-IDE) repository, one for
   each major area covered above.
-- `IMPLEMENTATION_PLAN.md` — if you're curious how Leopard itself was built, or
+- `../dev-docs/IMPLEMENTATION_PLAN.md` — if you're curious how Leopard itself was built, or
   want to contribute.

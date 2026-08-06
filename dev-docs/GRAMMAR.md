@@ -22,6 +22,7 @@ For build status, phase checklists, and where implementation currently stands, s
 13. **Strings support `[ ]` and `.length`, the same as lists** (Phase 14): `name[1]` reads the first character (1-based, same convention as list indexing), `name.length` is the character count. Read-only — `name[1] = "x"` is still a runtime error, since Leopard strings stay immutable; to build a new string you reassign the whole variable, same as the list "rebuild, don't remove" pattern (§3). `split(text, sep)` / `join(list, sep)` (§12) round out basic string handling — `split` turns delimited text (e.g. a `read_file()`'d line) into a list, `join` is its inverse.
 14. **Turtle graphics gained one command beyond the original's vocabulary** (Phase 15): `.polygon(sides, r)` / `.polygonfilled(sides, r)` draws a regular polygon (≥3 sides) centered on the current position. Every other §10 command is a faithful recreation of a `leopard.bas` command carried over unchanged; this is the one deliberate addition, made because the original had no way to draw a filled triangle, pentagon, or hexagon — only rectangles (`box`/`boxfilled`) and ellipses.
 15. **Leopard has mouse support** (Phase 16): `on mousemove <graphics-control>:` (§9) fires on every mouse move over a `graphics` control, and `.mouse_x`/`.mouse_y` (§10, read-only) report its last-seen position — the handler reads position back through a property, the same "event fires, state lives on the widget" pattern `on change` already established, rather than the event carrying parameters (nothing in Leopard's event handlers does). The original `leopard.bas` had no mouse support of any kind — this is a from-scratch addition, not a recreation.
+16. **`LANGUAGE_ROADMAP.md`'s stdlib/control-flow gaps are being closed, one category at a time** (in progress): math functions, `random`/`random_int`, a full string toolkit (`upper`/`lower`/`trim`/`contains`/`index_of`/`replace`/`starts_with`/`ends_with`/`substring`/`left`/`right`/`reverse`/`chr`), list functions (`sort`/`remove_at`/`sum`/`shuffle`/`choice`, plus `contains`/`index_of`/`reverse`/`min`/`max` shared with strings/numbers), and three new control-flow forms — `for var in list:` (for-each), `do: ... until condition` (post-test loop), and `switch value: case ...: default: ...` (multi-way branch) — all added below in §5/§9/§12. `../user-docs/LANGUAGE_SPEC.md` is the authoritative, kept-current reference for every builtin's exact signature; this section only records the shape of the decisions. `sign(n)` was the one roadmap item deliberately skipped.
 
 Everything below builds on those calls. Nothing here is final — flag anything that should change.
 
@@ -161,11 +162,24 @@ while count < 5:
 for i = 1 to 10 step 2:
     print i
 
+for fruit in fruits:
+    print fruit
+
+do:
+    print "runs at least once"
+until done
+
+switch grade:
+    case "A":
+        notice "Excellent!"
+    default:
+        notice "Keep working."
+
 break
 continue
 ```
 
-`for var = start to end [step n]` chosen over a `range()`-style builtin — closer to the original's turtle-ish, spelled-out BASIC feel.
+`for var = start to end [step n]` chosen over a `range()`-style builtin — closer to the original's turtle-ish, spelled-out BASIC feel. `for var in list:`, `do ... until`, and `switch`/`case`/`default` (status #16) round out the set with the ergonomic forms every mainstream language ships with — see `../user-docs/LANGUAGE_SPEC.md` §5 for the exact semantics (no fallthrough between `case`s, `for ... in` iterates a snapshot, etc).
 
 ---
 
@@ -177,7 +191,7 @@ One keyword, not separate `sub`/`function` — a function that never `return`s i
 function greet(who):
     return "Hello, " & who
 
-function log(message):
+function log_message(message):
     outputBox.text = outputBox.text & message & "\n"
 ```
 
@@ -447,9 +461,9 @@ window "Greeter", 360, 160:
 
 Consolidated list of everything that can't be used as a variable, function, or control name, now that the vocabulary has grown past the point of keeping this in your head:
 
-`window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`, `mousemove`
+`window`, `as`, `at`, `true`, `false`, `and`, `or`, `not`, `eq`, `if`, `elseif`, `else`, `while`, `for`, `to`, `step`, `in`, `do`, `until`, `switch`, `case`, `default`, `break`, `continue`, `function`, `return`, `menu`, `item`, `checkitem`, `submenu`, `separator`, `on`, `click`, `change`, `select`, `close`, `mousemove`
 
-Plus the control-declaration keywords from Section 7 (`textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`, `checkbox`, `groupbox`, `graphics`), every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `polygon`, `polygonfilled`, `drawbmp`), and every builtin from Section 12.
+Plus the control-declaration keywords from Section 7 (`textbox`, `textedit`, `label`, `button`, `bmpbutton`, `listbox`, `combobox`, `radiobutton`, `checkbox`, `groupbox`, `graphics`), every turtle-graphics command from Section 10 (`up`, `down`, `home`, `go`, `goto`, `place`, `turn`, `north`, `fill`, `pen`, `size`, `font`, `text`, `backcolor`, `box`, `boxfilled`, `circle`, `circlefilled`, `ellipse`, `ellipsefilled`, `polygon`, `polygonfilled`, `drawbmp`), and every builtin from Section 12 (see `../user-docs/LANGUAGE_SPEC.md` §15 for the full, current, generated-from-source list — it's long enough now that this document doesn't duplicate it name-by-name).
 
 `text window`, `graphics window`, and `page` are gone from this list (Phase 13): there's only one window kind left, and text areas are just ordinary `textedit` controls with whatever name you choose — `page` is not special anymore. The turtle-graphics command words stay reserved (still not usable as a variable/function/control name), but their only remaining role is as a method name after a dot on a `graphics` control (`canvas1.go(100)`) — see Section 10; they're never valid as bare, receiver-less statements now.
 

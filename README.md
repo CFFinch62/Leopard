@@ -49,11 +49,13 @@ Python installation required on the machine that runs it.
 
 ## Learning Leopard
 
-- **[LANGUAGE_GUIDE.md](LANGUAGE_GUIDE.md)** — start here. A tutorial that
+- **[user-docs/LANGUAGE_GUIDE.md](user-docs/LANGUAGE_GUIDE.md)** — start here. A tutorial that
   walks through every part of the language with runnable examples.
-- **[GRAMMAR.md](GRAMMAR.md)** — the complete, precise language spec: every
-  keyword, operator, and builtin, with exact rules. The source of truth the
-  guide is derived from.
+- **[user-docs/LANGUAGE_SPEC.md](user-docs/LANGUAGE_SPEC.md)** — the complete, flat reference:
+  every operator, statement form, and builtin function in one catalog, kept
+  verified against source.
+- **[dev-docs/GRAMMAR.md](dev-docs/GRAMMAR.md)** — the incremental design/decision log (why
+  things are the way they are), rather than a flat reference.
 - **[Example curriculum](https://github.com/CFFinch62/LEOPARD-IDE/tree/main/examples)**
   — sixteen sample programs in the companion [Leopard IDE](https://github.com/CFFinch62/LEOPARD-IDE)
   repository, from bare-script fundamentals through every window kind to two
@@ -73,9 +75,14 @@ package first (see Installing, above), then follow that repo's own README.
 ```
 LANGUAGES/Leopard/
   original -source/leopard.bas   <- original 2013 source, read-only reference
-  GRAMMAR.md                <- canonical language spec
-  LANGUAGE_GUIDE.md          <- beginner tutorial
-  IMPLEMENTATION_PLAN.md     <- project tracker / build history
+  user-docs/
+    LANGUAGE_SPEC.md           <- complete, flat language reference
+    LANGUAGE_GUIDE.md          <- beginner tutorial
+  dev-docs/
+    GRAMMAR.md                 <- design/decision log
+    IMPLEMENTATION_PLAN.md     <- project tracker / build history
+    FEATURE_PARITY_REVIEW.md   <- gap review vs. the original leopard.bas
+    LANGUAGE_ROADMAP.md        <- stdlib/control-flow gap review vs. mainstream languages
   pyproject.toml
   src/leopard_lang/
     tokens.py, lexer.py, ast_nodes.py, parser.py    <- lexer/parser
@@ -94,8 +101,8 @@ pip install -e ".[dev,gui,build]"
 pytest
 ```
 
-299 tests, headless (`QT_QPA_PLATFORM=offscreen` set automatically in
-`tests/conftest.py`), a few seconds to run. See `IMPLEMENTATION_PLAN.md` for
+447 tests, headless (`QT_QPA_PLATFORM=offscreen` set automatically in
+`tests/conftest.py`), a few seconds to run. See `dev-docs/IMPLEMENTATION_PLAN.md` for
 the full build history and design decisions behind the language.
 
 ## Acknowledgments
