@@ -13,6 +13,8 @@ from typing import Any, Optional
 
 from .errors import LeopardRuntimeError
 
+_MISSING = object()
+
 
 class Environment:
     def __init__(self, parent: Optional["Environment"] = None):
@@ -22,8 +24,9 @@ class Environment:
     def get(self, name: str, line: int) -> Any:
         env: Optional["Environment"] = self
         while env is not None:
-            if name in env.values:
-                return env.values[name]
+            value = env.values.get(name, _MISSING)
+            if value is not _MISSING:
+                return value
             env = env.parent
         raise LeopardRuntimeError(line, f"'{name}' is not defined")
 

@@ -65,6 +65,14 @@ class Interpreter:
             self.globals.set(const_name, const_value)
         self.functions: dict[str, ast.FunctionDecl] = {}
         self._loop_depth = 0
+        # `_exec`/`_eval` dispatch on AST node type millions of times in a hot loop;
+        # caching the resolved bound method per type (populated lazily, on first
+        # encounter of each of the ~30 node types) avoids rebuilding the
+        # f"_eval_{...}" method name and re-running getattr() on every single node
+        # visited. Same fix as FragBASIC's `_visit_dispatch` (see
+        # PROJECT_EULER/PYTHON_INTERPRETER_PERFORMANCE.md, LEOPARD section).
+        self._exec_dispatch: dict[type, Any] = {}
+        self._eval_dispatch: dict[type, Any] = {}
         self.gui_properties = gui_properties
         self.gui_builtins: dict = gui_builtins or {}
         self.gui_methods = gui_methods
@@ -93,11 +101,15 @@ class Interpreter:
             self._exec(stmt, env)
 
     def _exec(self, stmt: ast.Stmt, env: Environment) -> None:
-        method = getattr(self, f"_exec_{type(stmt).__name__}", None)
+        node_type = type(stmt)
+        method = self._exec_dispatch.get(node_type)
         if method is None:
-            raise LeopardRuntimeError(
-                getattr(stmt, "line", 0), f"cannot execute {type(stmt).__name__} yet"
-            )
+            method = getattr(self, f"_exec_{node_type.__name__}", None)
+            if method is None:
+                raise LeopardRuntimeError(
+                    getattr(stmt, "line", 0), f"cannot execute {node_type.__name__} yet"
+                )
+            self._exec_dispatch[node_type] = method
         method(stmt, env)
 
     def _exec_Assignment(self, stmt: ast.Assignment, env: Environment) -> None:
@@ -256,7 +268,12 @@ class Interpreter:
     # -- expression evaluation --------------------------------------------------
 
     def _eval(self, expr: ast.Expr, env: Environment) -> Any:
-        return getattr(self, f"_eval_{type(expr).__name__}")(expr, env)
+        node_type = type(expr)
+        method = self._eval_dispatch.get(node_type)
+        if method is None:
+            method = getattr(self, f"_eval_{node_type.__name__}")
+            self._eval_dispatch[node_type] = method
+        return method(expr, env)
 
     def _eval_Literal(self, expr: ast.Literal, env: Environment) -> Any:
         return expr.value
@@ -289,17 +306,12 @@ class Interpreter:
         left = self._eval(expr.left, env)
         right = self._eval(expr.right, env)
 
-        if op == "&":
-            if not isinstance(left, str):
-                raise LeopardRuntimeError(
-                    expr.line, f"cannot '&' {describe_type(left)} — use str() to convert it first"
-                )
-            if not isinstance(right, str):
-                raise LeopardRuntimeError(
-                    expr.line, f"cannot '&' {describe_type(right)} — use str() to convert it first"
-                )
-            return left + right
-
+        # Ordered by expected frequency in real Leopard programs (arithmetic and
+        # comparisons dominate loop-heavy code) rather than grammar order, so the
+        # common case reaches its branch in fewer string-equality checks. '&' and
+        # '<>' are checked last since string concatenation and not-equals are rare
+        # by comparison. See PROJECT_EULER/PYTHON_INTERPRETER_PERFORMANCE.md, LEOPARD
+        # Case 2, for the measurement behind this ordering.
         if op == "+":
             if isinstance(left, str) and isinstance(right, str):
                 raise LeopardRuntimeError(expr.line, "cannot use '+' on two strings — use '&' to join text")
@@ -324,10 +336,6 @@ class Interpreter:
                 return l % r
             return l**r  # '^'
 
-        if op == "=":
-            return self._values_equal(left, right)
-        if op == "<>":
-            return not self._values_equal(left, right)
         if op in ("<", ">", "<=", ">="):
             l = self._require_number(left, expr.line, f"'{op}'")
             r = self._require_number(right, expr.line, f"'{op}'")
@@ -338,6 +346,23 @@ class Interpreter:
             if op == "<=":
                 return l <= r
             return l >= r  # '>='
+
+        if op == "=":
+            return self._values_equal(left, right)
+
+        if op == "&":
+            if not isinstance(left, str):
+                raise LeopardRuntimeError(
+                    expr.line, f"cannot '&' {describe_type(left)} — use str() to convert it first"
+                )
+            if not isinstance(right, str):
+                raise LeopardRuntimeError(
+                    expr.line, f"cannot '&' {describe_type(right)} — use str() to convert it first"
+                )
+            return left + right
+
+        if op == "<>":
+            return not self._values_equal(left, right)
 
         raise LeopardRuntimeError(expr.line, f"unknown operator '{op}'")
 
@@ -447,20 +472,30 @@ class Interpreter:
     # -- helpers ------------------------------------------------------------
 
     def _require_bool(self, value: Any, line: int, where: str) -> bool:
-        if not isinstance(value, bool):
+        # `type(value) is bool` rather than `isinstance` — no runtime value in this
+        # interpreter is ever a bool subclass, so the identity check is equivalent
+        # and skips isinstance's (sub)class-check machinery. See
+        # PYTHON_INTERPRETER_PERFORMANCE.md, LEOPARD Case 3.
+        if type(value) is not bool:
             raise LeopardRuntimeError(line, f"{where} must be true/false, not {describe_type(value)}")
         return value
 
     def _require_number(self, value: Any, line: int, where: str) -> Any:
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise LeopardRuntimeError(line, f"{where} needs a number, not {describe_type(value)}")
-        return value
+        # bool is a subclass of int, so `type(value) is int` (identity, not
+        # isinstance) already excludes it correctly on its own — no separate
+        # bool-exclusion check needed, unlike the old isinstance-based version.
+        t = type(value)
+        if t is int or t is float:
+            return value
+        raise LeopardRuntimeError(line, f"{where} needs a number, not {describe_type(value)}")
 
     def _values_equal(self, left: Any, right: Any) -> bool:
-        if isinstance(left, bool) != isinstance(right, bool):
-            return False
-        left_is_num = isinstance(left, (int, float)) and not isinstance(left, bool)
-        right_is_num = isinstance(right, (int, float)) and not isinstance(right, bool)
+        lt = type(left)
+        rt = type(right)
+        if lt is bool or rt is bool:
+            return lt is rt and left == right
+        left_is_num = lt is int or lt is float
+        right_is_num = rt is int or rt is float
         if left_is_num and right_is_num:
             return left == right
         return type(left) is type(right) and left == right
