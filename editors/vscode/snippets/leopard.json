@@ -1,0 +1,262 @@
+{
+  "Window": {
+    "prefix": "window",
+    "body": [
+      "window \"${1:My App}\", ${2:500}, ${3:400}:",
+      "    ${0}"
+    ],
+    "description": "A window program — title, width, height"
+  },
+  "Function": {
+    "prefix": "function",
+    "body": [
+      "function ${1:name}(${2:arg}):",
+      "    ${0}"
+    ],
+    "description": "A function (or a procedure, if it never returns)"
+  },
+  "If": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition}:",
+      "    ${0}"
+    ],
+    "description": "An if block"
+  },
+  "If / else": {
+    "prefix": "ife",
+    "body": [
+      "if ${1:condition}:",
+      "    ${2}",
+      "else:",
+      "    ${0}"
+    ],
+    "description": "An if / else block"
+  },
+  "If / elseif / else": {
+    "prefix": "ifelseif",
+    "body": [
+      "if ${1:condition}:",
+      "    ${2}",
+      "elseif ${3:condition}:",
+      "    ${4}",
+      "else:",
+      "    ${0}"
+    ],
+    "description": "An if / elseif / else chain"
+  },
+  "For (counted)": {
+    "prefix": "for",
+    "body": [
+      "for ${1:i} = ${2:1} to ${3:10}:",
+      "    ${0}"
+    ],
+    "description": "A counted for loop"
+  },
+  "For (with step)": {
+    "prefix": "forstep",
+    "body": [
+      "for ${1:i} = ${2:1} to ${3:10} step ${4:2}:",
+      "    ${0}"
+    ],
+    "description": "A counted for loop with a step"
+  },
+  "For each": {
+    "prefix": "forin",
+    "body": [
+      "for ${1:item} in ${2:items}:",
+      "    ${0}"
+    ],
+    "description": "Iterate the items of a list"
+  },
+  "While": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition}:",
+      "    ${0}"
+    ],
+    "description": "A while loop"
+  },
+  "Do until": {
+    "prefix": "do",
+    "body": [
+      "do:",
+      "    ${1}",
+      "until ${0:condition}"
+    ],
+    "description": "A loop that always runs at least once"
+  },
+  "Switch": {
+    "prefix": "switch",
+    "body": [
+      "switch ${1:value}:",
+      "    case ${2:\"A\"}:",
+      "        ${3}",
+      "    default:",
+      "        ${0}"
+    ],
+    "description": "A switch with a default case"
+  },
+  "Label": {
+    "prefix": "label",
+    "body": [
+      "label \"${1:Text}\" as ${2:myLabel} at ${3:10}, ${4:10}, ${5:200}, ${6:20}"
+    ],
+    "description": "A text label control"
+  },
+  "Button": {
+    "prefix": "button",
+    "body": [
+      "button \"${1:Click me}\" as ${2:myButton} at ${3:10}, ${4:10}, ${5:100}, ${6:24}"
+    ],
+    "description": "A button control"
+  },
+  "Textbox": {
+    "prefix": "textbox",
+    "body": [
+      "textbox as ${1:myBox} at ${2:10}, ${3:10}, ${4:200}, ${5:24}"
+    ],
+    "description": "A single-line text entry control"
+  },
+  "Textedit": {
+    "prefix": "textedit",
+    "body": [
+      "textedit as ${1:myNotes} at ${2:10}, ${3:10}, ${4:300}, ${5:80}"
+    ],
+    "description": "A multi-line editable text area"
+  },
+  "Listbox": {
+    "prefix": "listbox",
+    "body": [
+      "listbox as ${1:myList} at ${2:10}, ${3:10}, ${4:150}, ${5:100}",
+      "${1:myList}.items = [${0:\"One\", \"Two\"}]"
+    ],
+    "description": "A listbox with its items"
+  },
+  "Combobox": {
+    "prefix": "combobox",
+    "body": [
+      "combobox as ${1:myCombo} at ${2:10}, ${3:10}, ${4:150}, ${5:24}",
+      "${1:myCombo}.items = [${0:\"One\", \"Two\"}]"
+    ],
+    "description": "A dropdown with its items"
+  },
+  "Checkbox": {
+    "prefix": "checkbox",
+    "body": [
+      "checkbox \"${1:Enable}\" as ${2:myCheck} at ${3:10}, ${4:10}, ${5:200}, ${6:24}"
+    ],
+    "description": "A checkbox control"
+  },
+  "Radio button": {
+    "prefix": "radiobutton",
+    "body": [
+      "radiobutton \"${1:Option A}\" as ${2:optionA} at ${3:10}, ${4:10}, ${5:150}, ${6:24}"
+    ],
+    "description": "A radio button control"
+  },
+  "Graphics canvas": {
+    "prefix": "graphics",
+    "body": [
+      "graphics as ${1:canvas1} at ${2:0}, ${3:0}, ${4:640}, ${5:480}"
+    ],
+    "description": "A turtle-graphics canvas control"
+  },
+  "On click": {
+    "prefix": "onclick",
+    "body": [
+      "on click ${1:myButton}:",
+      "    ${0}"
+    ],
+    "description": "Handle a button or menu-item click"
+  },
+  "On change": {
+    "prefix": "onchange",
+    "body": [
+      "on change ${1:myCheck}:",
+      "    ${0}"
+    ],
+    "description": "Handle a checkbox, radio, combo or textedit change"
+  },
+  "On select": {
+    "prefix": "onselect",
+    "body": [
+      "on select ${1:myList}:",
+      "    ${0}"
+    ],
+    "description": "Handle a listbox or combobox selection"
+  },
+  "On close": {
+    "prefix": "onclose",
+    "body": [
+      "on close window:",
+      "    ${0}"
+    ],
+    "description": "Handle the window being closed"
+  },
+  "Menu": {
+    "prefix": "menu",
+    "body": [
+      "menu \"${1:File}\":",
+      "    item \"${2:Quit}\" as ${3:quitItem}",
+      "",
+      "on click ${3:quitItem}:",
+      "    ${0}"
+    ],
+    "description": "A menu with an item and its handler"
+  },
+  "Turtle drawing": {
+    "prefix": "turtle",
+    "body": [
+      "${1:canvas1}.pen(\"${2:red}\")",
+      "${1:canvas1}.size(${3:3})",
+      "${1:canvas1}.down()",
+      "${1:canvas1}.go(${4:100})",
+      "${1:canvas1}.turn(${5:90})",
+      "${0}"
+    ],
+    "description": "Set the pen and draw with the turtle"
+  },
+  "Notice": {
+    "prefix": "notice",
+    "body": [
+      "notice \"${0:Message}\""
+    ],
+    "description": "Show a message dialog"
+  },
+  "Ask": {
+    "prefix": "ask",
+    "body": [
+      "${1:answer} = ask(\"${0:What is your name?}\")"
+    ],
+    "description": "Prompt the user for text"
+  },
+  "Print": {
+    "prefix": "print",
+    "body": [
+      "print ${0:\"text\"}"
+    ],
+    "description": "Write a line to the terminal"
+  },
+  "Concatenate": {
+    "prefix": "concat",
+    "body": [
+      "\"${1:Score: }\" & str(${0:score})"
+    ],
+    "description": "Join a string and a number — & needs both sides to be strings"
+  },
+  "Play sound": {
+    "prefix": "playsound",
+    "body": [
+      "play_sound(\"${0:assets/chime.wav}\")"
+    ],
+    "description": "Play a short one-shot WAV effect"
+  },
+  "Play music": {
+    "prefix": "playmusic",
+    "body": [
+      "play_music(\"${0:assets/track.mp3}\")"
+    ],
+    "description": "Play longer background audio (WAV/MP3/MIDI)"
+  }
+}

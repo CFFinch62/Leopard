@@ -22,6 +22,11 @@ leopard run hello.lep
 
 ## Installing
 
+```bash
+git clone https://github.com/CFFinch62/Leopard.git
+cd Leopard
+```
+
 Leopard is a standard pip package (`leopard-lang`), split into optional
 extras so you only install what you need:
 
@@ -39,6 +44,7 @@ core has zero GUI dependency.
 
 ```bash
 leopard run script.lep              # run a program
+leopard check script.lep            # report syntax errors without running it
 leopard build script.lep            # compile it into a standalone executable
 leopard build script.lep -o dist -n myapp
 ```
@@ -46,6 +52,28 @@ leopard build script.lep -o dist -n myapp
 `leopard build` bundles your script's source, the Leopard runtime, and a
 small generated launcher into one `--onefile` PyInstaller executable — no
 Python installation required on the machine that runs it.
+
+`leopard check` lexes and parses without executing anything. That distinction
+matters: a Leopard program can open dialogs, write files and play sound, so
+"does this parse?" should not be answered by running it. Errors are printed as
+`<path>:<line>: <message>` — with the file path, unlike the bare
+`Line N: message` that `run` reports — so an editor or build tool can attribute
+them. It exits 0 when the file is clean and 1 when it is not.
+
+```console
+$ leopard check greeter.lep
+greeter.lep: no syntax errors
+
+$ leopard check broken.lep
+broken.lep:12: expected an expression, found 'NEWLINE'
+```
+
+## Editor support
+
+[editors/vscode](editors/vscode) is a VS Code extension for `.lep` files:
+syntax highlighting for all 147 reserved words split by role, control-name and
+turtle-method awareness, snippets for windows, controls, events and turtle
+drawing, and Run / Check / Build commands wired to the Problems panel.
 
 ## Learning Leopard
 

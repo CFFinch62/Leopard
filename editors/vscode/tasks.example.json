@@ -1,0 +1,50 @@
+// Copy into your project's .vscode/tasks.json to drive Leopard as build tasks.
+// This needs no extension at all -- the problem matcher below turns
+// `leopard check`'s output into entries in the Problems panel on its own.
+//
+// Note the split: `check` names the file it is reporting on, so a matcher can
+// place its errors. A failing `leopard run` prints LeopardError's own
+// "Line <n>: <message>" with no filename, which a task matcher has no way to
+// attribute -- so the run task below carries no matcher, and `check` is the
+// task to bind to your keyboard if you want squiggles.
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Leopard: check current file",
+      "type": "shell",
+      "command": "leopard",
+      "args": ["check", "${file}"],
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "silent", "panel": "dedicated", "clear": true },
+      "problemMatcher": {
+        "owner": "leopard",
+        "source": "leopard",
+        "fileLocation": "autoDetect",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      }
+    },
+    {
+      "label": "Leopard: run current file",
+      "type": "shell",
+      "command": "leopard",
+      "args": ["run", "${file}"],
+      "group": { "kind": "test", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Leopard: build standalone executable",
+      "type": "shell",
+      "command": "leopard",
+      "args": ["build", "${file}", "-o", "dist", "-n", "${fileBasenameNoExtension}"],
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
+      "problemMatcher": "$leopard"
+    }
+  ]
+}

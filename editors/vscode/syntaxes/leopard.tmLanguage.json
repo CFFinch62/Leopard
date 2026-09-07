@@ -1,0 +1,191 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Leopard",
+  "scopeName": "source.leopard",
+  "fileTypes": ["lep"],
+  "_comment": "Word lists are the 147 reserved words in leopard_lang.tokens.KEYWORDS, split by the roles dev-docs/GRAMMAR.md gives them (§5 control, §7 controls, §9 events, §10 turtle, §12 builtins). Every reserved word appears in exactly one list. Note `goto` is a turtle command (canvas.goto(x,y)), not control flow -- GRAMMAR.md §10.",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#function_definition" },
+    { "include": "#event_handler" },
+    { "include": "#as_binding" },
+    { "include": "#window_header" },
+    { "include": "#turtle_method" },
+    { "include": "#property_access" },
+    { "include": "#keyword_control" },
+    { "include": "#keyword_structure" },
+    { "include": "#keyword_control_widget" },
+    { "include": "#keyword_event" },
+    { "include": "#keyword_operator_word" },
+    { "include": "#constant_language" },
+    { "include": "#keyword_turtle" },
+    { "include": "#support_builtin" },
+    { "include": "#constant_numeric" },
+    { "include": "#function_call" },
+    { "include": "#operator" },
+    { "include": "#punctuation" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.number-sign.leopard",
+      "match": "#.*$"
+    },
+
+    "string": {
+      "name": "string.quoted.double.leopard",
+      "begin": "\"",
+      "end": "\"",
+      "beginCaptures": {
+        "0": { "name": "punctuation.definition.string.begin.leopard" }
+      },
+      "endCaptures": {
+        "0": { "name": "punctuation.definition.string.end.leopard" }
+      },
+      "patterns": [
+        {
+          "name": "constant.character.escape.leopard",
+          "match": "\\\\."
+        }
+      ]
+    },
+
+    "function_definition": {
+      "match": "\\b(function)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.declaration.function.leopard" },
+        "2": { "name": "entity.name.function.definition.leopard" }
+      }
+    },
+
+    "event_handler": {
+      "comment": "on <event> <control>:  -- GRAMMAR.md §9",
+      "match": "\\b(on)\\s+(click|change|select|close|mousemove)\\b(?:\\s+([A-Za-z_][A-Za-z0-9_]*))?",
+      "captures": {
+        "1": { "name": "keyword.control.event.leopard" },
+        "2": { "name": "entity.name.function.event.leopard" },
+        "3": { "name": "variable.other.control.leopard" }
+      }
+    },
+
+    "as_binding": {
+      "comment": "The `as <name>` half of a control or menu-item declaration (GRAMMAR.md §7/§8). Deliberately does NOT span the preceding \"caption\" string -- a rule that reached back over it would consume the string and strip its own highlighting, since the top-level match starting earliest wins.",
+      "match": "\\b(as)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "keyword.other.leopard" },
+        "2": { "name": "entity.name.variable.control.leopard" }
+      }
+    },
+
+    "window_header": {
+      "match": "^\\s*(window)\\b",
+      "captures": {
+        "1": { "name": "keyword.declaration.window.leopard" }
+      }
+    },
+
+    "turtle_method": {
+      "comment": "Turtle commands are only ever dotted method calls on a graphics control -- GRAMMAR.md §10 -- never bare statements.",
+      "match": "(\\.)(up|down|home|go|goto|place|turn|north|fill|pen|size|font|text|backcolor|box|boxfilled|circle|circlefilled|ellipse|ellipsefilled|polygon|polygonfilled|drawbmp)\\b",
+      "captures": {
+        "1": { "name": "punctuation.accessor.leopard" },
+        "2": { "name": "support.function.turtle.leopard" }
+      }
+    },
+
+    "property_access": {
+      "match": "(\\.)([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "1": { "name": "punctuation.accessor.leopard" },
+        "2": { "name": "variable.other.property.leopard" }
+      }
+    },
+
+    "keyword_control": {
+      "name": "keyword.control.leopard",
+      "match": "\\b(if|elseif|else|while|for|to|step|in|do|until|switch|case|default|break|continue|return)\\b"
+    },
+
+    "keyword_structure": {
+      "comment": "`function` is caught by function_definition first, and `as` by as_binding; this covers a bare mention of either. The menu words live in keyword_control_widget instead -- they declare UI objects, like the other controls -- so that every reserved word still lands in exactly one category.",
+      "name": "keyword.declaration.leopard",
+      "match": "\\b(window|function|as|at)\\b"
+    },
+
+    "keyword_control_widget": {
+      "name": "support.class.control.leopard",
+      "match": "\\b(textbox|textedit|label|button|bmpbutton|listbox|combobox|radiobutton|checkbox|groupbox|graphics|menu|item|checkitem|submenu|separator)\\b"
+    },
+
+    "keyword_event": {
+      "name": "keyword.control.event.leopard",
+      "match": "\\b(on|click|change|select|close|mousemove)\\b"
+    },
+
+    "keyword_operator_word": {
+      "comment": "`eq` is a word spelling of `=` in comparison position -- GRAMMAR.md §4.",
+      "name": "keyword.operator.word.leopard",
+      "match": "\\b(and|or|not|eq)\\b"
+    },
+
+    "constant_language": {
+      "name": "constant.language.leopard",
+      "match": "\\b(true|false)\\b"
+    },
+
+    "keyword_turtle": {
+      "comment": "Reserved even undotted, so they still colour if written bare -- but see turtle_method for the real call form.",
+      "name": "support.function.turtle.leopard",
+      "match": "\\b(up|down|home|go|goto|place|turn|north|fill|pen|size|font|text|backcolor|box|boxfilled|circle|circlefilled|ellipse|ellipsefilled|polygon|polygonfilled|drawbmp)\\b"
+    },
+
+    "support_builtin": {
+      "comment": "GRAMMAR.md §12 -- the 76 builtin actions, generated from leopard_lang.tokens.KEYWORDS minus every other category.",
+      "name": "support.function.builtin.leopard",
+      "match": "\\b(abs|append_file|ascii|ask|beep|ceil|choice|chr|close_window|color_dialog|command_line_args|confirm|contains|cos|date|delete_file|download_file|ends_with|exp|file_exists|floor|font_dialog|get_env|index_of|input|is_list|is_number|is_string|join|left|log|lower|make_dir|max|maximize_window|min|minimize_window|notice|num|open_email|open_file_dialog|open_url|pause_music|pi|play_music|play_sound|print|random|random_int|read_file|remove_at|remove_dir|replace|reverse|right|round|run_program|save_file_dialog|set_cursor|shuffle|sin|sort|split|sqrt|starts_with|stop_music|stop_sound|str|substring|sum|tan|time|trim|type_of|upper|write_file)\\b"
+    },
+
+    "constant_numeric": {
+      "name": "constant.numeric.leopard",
+      "match": "\\b[0-9]+(?:\\.[0-9]+)?\\b"
+    },
+
+    "function_call": {
+      "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+      "name": "entity.name.function.leopard"
+    },
+
+    "operator": {
+      "patterns": [
+        {
+          "comment": "GRAMMAR.md §4. `<>` before `<`; `<=`/`>=` before the bare forms.",
+          "name": "keyword.operator.comparison.leopard",
+          "match": "<>|<=|>=|[<>]"
+        },
+        {
+          "comment": "`&` is string concatenation, not bitwise-and.",
+          "name": "keyword.operator.concat.leopard",
+          "match": "&"
+        },
+        {
+          "name": "keyword.operator.arithmetic.leopard",
+          "match": "[+\\-*/%^]"
+        },
+        {
+          "comment": "`=` is both assignment and equality -- GRAMMAR.md §4.",
+          "name": "keyword.operator.assignment.leopard",
+          "match": "="
+        }
+      ]
+    },
+
+    "punctuation": {
+      "patterns": [
+        { "name": "punctuation.definition.parameters.leopard", "match": "[()]" },
+        { "name": "punctuation.definition.list.leopard", "match": "[\\[\\]]" },
+        { "name": "punctuation.separator.comma.leopard", "match": "," },
+        { "name": "punctuation.separator.colon.leopard", "match": ":" }
+      ]
+    }
+  }
+}

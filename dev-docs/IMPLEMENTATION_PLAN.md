@@ -793,6 +793,32 @@ real display to click-test).
 *(Append-only, newest first. Anything that isn't already captured in GRAMMAR.md's status list but
 affects implementation goes here — file layout calls, library choices, judgment calls made mid-phase.)*
 
+- **2026-09-06** — Added `leopard check <script.lep>`, a parse-only subcommand
+  (`src/leopard_lang/cli.py`). Driven by the VS Code extension in
+  `editors/vscode`: an editor needs to answer "does this parse?" without side
+  effects, and a Leopard program can open dialogs, write files and play sound,
+  so checking by running was the wrong trade. It lexes and parses, then exits
+  0 or 1.
+
+  It prints `<path>:<line>: <message>` rather than the bare `Line N: message`
+  that `LeopardError.__str__` produces. That is deliberate and is the whole
+  reason the subcommand earns its place: a VS Code problem matcher cannot
+  attribute an error to a file without the path in the output, so `run`'s
+  format — which is the right thing to show a beginner — is unusable for
+  tooling. `run`'s output is unchanged; the extension parses that format
+  itself and pins it to the file it ran.
+
+  447 tests pass unchanged.
+
+- **2026-09-06** — Added `editors/vscode`, a VS Code extension for `.lep`
+  files. Keyword lists come from `leopard_lang.tokens.KEYWORDS` and
+  `GRAMMAR.md`, not from `leopard_ide/app/leopard_language.py`: all 147
+  reserved words are split by role and verified exhaustive and disjoint, which
+  caught `goto` being a turtle command (§10) rather than control flow. The IDE
+  highlighter's own `_BUILTINS_AND_COMMANDS` list stays as it is — it is
+  hand-maintained by design (see its comment) — so the two are independent on
+  purpose.
+
 - **2026-08-05** — Phase 16: user asked for two more `leopard-paint.lep` power-ups — grid
   granularity (choose the grid cell size) and a live mouse-position readout in the toolbox, "to
   help users figure out how to place items on the canvas." Grid granularity was script-only (a

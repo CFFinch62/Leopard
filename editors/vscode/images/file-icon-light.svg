@@ -1,0 +1,19 @@
+<!-- Leopard file icon, light themes. Rosettes rather than the full leopard face
+     from leopard-icon.svg: at the 16px the explorer actually renders, ears and
+     eyes collapse into a smudge, while the spot pattern still reads as
+     "leopard" instantly. Each rosette is an open ring with a solid centre —
+     a plain filled dot reads as a bullet list, not a pelt. Drawn as geometry
+     so it needs no font, and sized on a 16x16 viewBox. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g fill="none" stroke="#96610f" stroke-width="1.5" stroke-linecap="round">
+    <circle cx="4.6" cy="4.4" r="2.5"/>
+    <circle cx="11.4" cy="6.4" r="2.2"/>
+    <circle cx="6.4" cy="11.4" r="2.4"/>
+  </g>
+  <g fill="#96610f">
+    <circle cx="4.6" cy="4.4" r=".95"/>
+    <circle cx="11.4" cy="6.4" r=".85"/>
+    <circle cx="6.4" cy="11.4" r=".9"/>
+    <circle cx="12.4" cy="12.2" r="1.15"/>
+  </g>
+</svg>

@@ -1,0 +1,197 @@
+{
+  "name": "leopard-language",
+  "displayName": "Leopard Language",
+  "description": "Syntax highlighting, snippets, and one-key running for the Leopard programming language (.lep files).",
+  "version": "0.1.0",
+  "publisher": "fragillidae",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CFFinch62/Leopard.git"
+  },
+  "homepage": "https://github.com/CFFinch62/Leopard#readme",
+  "bugs": {
+    "url": "https://github.com/CFFinch62/Leopard/issues"
+  },
+  "qna": "https://github.com/CFFinch62/Leopard/issues",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "leopard",
+    "lep",
+    "basic",
+    "gui",
+    "turtle graphics"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:leopard"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "leopard",
+        "aliases": [
+          "Leopard",
+          "leopard"
+        ],
+        "extensions": [
+          ".lep"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/file-icon-light.svg",
+          "dark": "./images/file-icon-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "leopard",
+        "scopeName": "source.leopard",
+        "path": "./syntaxes/leopard.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "leopard",
+        "path": "./snippets/leopard.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "leopard.runFile",
+        "title": "Leopard: Run File",
+        "icon": "$(play)"
+      },
+      {
+        "command": "leopard.checkFile",
+        "title": "Leopard: Check for Errors",
+        "icon": "$(check)"
+      },
+      {
+        "command": "leopard.buildFile",
+        "title": "Leopard: Build Standalone Executable",
+        "icon": "$(package)"
+      }
+    ],
+    "menus": {
+      "editor/title/run": [
+        {
+          "command": "leopard.runFile",
+          "when": "resourceLangId == leopard",
+          "group": "navigation@1"
+        },
+        {
+          "command": "leopard.checkFile",
+          "when": "resourceLangId == leopard",
+          "group": "navigation@2"
+        },
+        {
+          "command": "leopard.buildFile",
+          "when": "resourceLangId == leopard",
+          "group": "navigation@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "leopard.runFile",
+          "when": "resourceLangId == leopard",
+          "group": "z_commands@1"
+        },
+        {
+          "command": "leopard.checkFile",
+          "when": "resourceLangId == leopard",
+          "group": "z_commands@2"
+        }
+      ],
+      "commandPalette": [
+        { "command": "leopard.runFile", "when": "resourceLangId == leopard" },
+        { "command": "leopard.checkFile", "when": "resourceLangId == leopard" },
+        { "command": "leopard.buildFile", "when": "resourceLangId == leopard" }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "leopard.runFile",
+        "key": "ctrl+f5",
+        "mac": "cmd+f5",
+        "when": "resourceLangId == leopard && editorTextFocus"
+      },
+      {
+        "command": "leopard.checkFile",
+        "key": "ctrl+shift+f5",
+        "mac": "cmd+shift+f5",
+        "when": "resourceLangId == leopard && editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "Leopard",
+      "properties": {
+        "leopard.interpreterPath": {
+          "type": "string",
+          "default": "leopard",
+          "markdownDescription": "Path to the `leopard` command. Leave as `leopard` if `pip install -e .` put it on your `PATH`; otherwise give an absolute path (for example the `leopard` inside a virtualenv's `bin/`)."
+        },
+        "leopard.saveBeforeRun": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save the file automatically before running, checking or building it."
+        },
+        "leopard.runInTerminal": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Run in an integrated terminal, which keeps `input()` usable and gives a GUI program a normal controlling process.\n\nTurn this **off** to capture output in an Output channel instead, which is what populates the Problems panel with Leopard's errors. **Leopard: Check for Errors** always uses the Output channel, so you can leave this on and still get diagnostics on demand."
+        },
+        "leopard.checkOnSave": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Check a `.lep` file for syntax errors whenever it is saved and report them in the Problems panel. Off by default because it spawns the interpreter on every save."
+        },
+        "leopard.buildOutputDir": {
+          "type": "string",
+          "default": "dist",
+          "markdownDescription": "Directory passed to `leopard build -o`, relative to the script being built."
+        }
+      }
+    },
+    "problemMatchers": [
+      {
+        "name": "leopard",
+        "owner": "leopard",
+        "source": "leopard",
+        "fileLocation": "autoDetect",
+        "pattern": {
+          "regexp": "^(.*):(\\d+):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        }
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "leopard",
+        "required": [
+          "file"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The .lep file to run."
+          },
+          "command": {
+            "type": "string",
+            "description": "The leopard subcommand to invoke (run, build)."
+          }
+        }
+      }
+    ]
+  }
+}

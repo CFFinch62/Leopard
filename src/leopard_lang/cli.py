@@ -24,6 +24,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Extra arguments passed through to the script, readable via command_line_args()",
     )
 
+    check_parser = subparsers.add_parser(
+        "check", help="Report syntax errors in a .lep script without running it"
+    )
+    check_parser.add_argument("script", type=Path)
+
     build_parser = subparsers.add_parser(
         "build", help="Compile a .lep script into a standalone executable"
     )
@@ -52,10 +57,39 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         return 0
 
+    if args.command == "check":
+        return _check(args.script)
+
     if args.command == "build":
         return _build(args.script, args.output, args.name)
 
     return 1
+
+
+def _check(script: Path) -> int:
+    """Lex and parse a script, reporting errors without executing anything.
+
+    An editor needs a way to surface syntax errors that does not involve
+    running the program — a Leopard script can open dialogs, write files and
+    play sound, none of which should happen just because someone asked
+    whether the file parses. Errors are printed as `<path>:<line>: <message>`
+    rather than the bare `Line <n>:` that LeopardError formats itself, so a
+    tool reading this output knows which file it belongs to.
+    """
+    try:
+        source = script.read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"leopard check: cannot read {script}: {exc}", file=sys.stderr)
+        return 1
+
+    try:
+        parse(tokenize(source))
+    except LeopardError as exc:
+        print(f"{script}:{exc.line}: {exc.message}", file=sys.stderr)
+        return 1
+
+    print(f"{script}: no syntax errors")
+    return 0
 
 
 def _build(script: Path, output: Path, name: str | None) -> int:
